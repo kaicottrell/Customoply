@@ -1,4 +1,4 @@
-﻿namespace PraceticeMonopoly1.Server.Models
+﻿namespace CustomMonopoly.Server.Models
 {
     /// <summary>
     /// Let's say we introduce tournments into our game. Where we have a list of UserResults {score: int, playerId} for the tournament and a list of subtournaments ( if any)

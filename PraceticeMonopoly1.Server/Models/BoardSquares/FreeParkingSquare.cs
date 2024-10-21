@@ -1,4 +1,4 @@
-﻿namespace PraceticeMonopoly1.Server.Models.BoardSquares
+﻿namespace CustomMonopoly.Server.Models.BoardSquares
 {
     public class FreeParkingSquare : BoardSquare
     {

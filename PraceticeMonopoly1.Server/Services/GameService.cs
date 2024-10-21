@@ -1,8 +1,9 @@
 ﻿using Microsoft.OpenApi.Services;
-using PraceticeMonopoly1.Server.Models;
-using PraceticeMonopoly1.Server.Models.BoardSquares;
+using CustomMonopoly.Server.Models;
+using CustomMonopoly.Server.Models.BoardSquares;
+using CustomMonopoly.Server.Data;
 
-namespace PraceticeMonopoly1.Server.Services
+namespace CustomMonopoly.Server.Services
 {
     /// <summary>
     /// Handles services related to the monopoly game
@@ -16,18 +17,20 @@ namespace PraceticeMonopoly1.Server.Services
             _db = db;
         }
 
-        //Sets up the board 
-        public PropertyAndAvailability MovePlayer(Player player, int gameId)
+        public PropertyAndAvailability MovePlayer(string userId, int gameId)
         {
+            //Get the player associated with the userId
+            var player = _db.Players.Where(player => player.UserId == userId).First();
+
             // move the player to another spot on the board
-            player.CurrentPostion = ((player.CurrentPostion + player.Roll2Dice()) % _game.Board.Count());
+            player.CurrentPostion = ((player.CurrentPostion + player.RollTwoDice()) % _game.Board.Count());
             // Get the boardsquare at the new postion and return type
             //Return the property and if it is available for purchase
             BoardSquare boardSquare = _game.Board[player.CurrentPostion];
             //TODO: Add the ability to charge the players rent 
             if (boardSquare is PropertySquare)
             {
-                bool isAvailable = _db.PlayerProperties.Any(pp => pp.PropertyId == boardSquare.Id && pp.Player.Game.Id == gameId) == false;
+                bool isAvailable = _db.PlayerProperties.Any(pp => pp.PropertySquareId == boardSquare.Id && pp.Player.Game.Id == gameId) == false;
                 return new PropertyAndAvailability { Property = (PropertySquare)boardSquare, IsAvailable = isAvailable };
             }   
             else
@@ -35,14 +38,17 @@ namespace PraceticeMonopoly1.Server.Services
                 return new PropertyAndAvailability { Property = null, IsAvailable = false };
             }
         }
-        public (bool success, string message) BuyProperty(int propertyId, int playerId, int gameId)
+        public (bool success, string message) BuyProperty(int propertyId, string userId, int gameId)
         {
+            //Get the player associated with the userId
+            var player = _db.Players.Where(player => player.UserId == userId).First();
+
             //Verify that the property is not already bought
-            bool canBuy = _db.PlayerProperties.Any(p => p.PropertyId == propertyId && p.Player.Game.Id == gameId) == false;
+            bool canBuy = _db.PlayerProperties.Any(p => p.PropertySquareId == propertyId && p.Player.Game.Id == gameId) == false;
             if (canBuy)
             {
                 // add the property to a players list
-                _db.PlayerProperties.Add(new PlayerProperty { PlayerId = playerId, PropertyId = propertyId });
+                _db.PlayerProperties.Add(new PlayerProperty { PlayerId = player.Id, PropertySquareId = propertyId });
                 _db.SaveChanges();
                 return (true, "Property Successfully bought!");
             }
@@ -51,9 +57,9 @@ namespace PraceticeMonopoly1.Server.Services
                 return (false, "Property is not available");
             }
         }
-        public List<BoardSquare> GetGameBoard()
-        {
-        }
+        //public List<BoardSquare> GetGameBoard()
+        //{
+        //}
 
         //public string HandleOutcome()
         //{
@@ -63,6 +69,13 @@ namespace PraceticeMonopoly1.Server.Services
         //{
 
         //}
+
+        //Sets up the board spaces, sets up players
+        public void ConfigureGame()
+        {
+
+        }
+
         public struct PropertyAndAvailability()
         {
             public PropertySquare? Property { get; set; }

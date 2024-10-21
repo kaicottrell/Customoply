@@ -1,6 +1,6 @@
-@PraceticeMonopoly1.Server_HostAddress = http://localhost:5101
+@CustomMonopoly.Server_HostAddress = http://localhost:5101
 
-GET {{PraceticeMonopoly1.Server_HostAddress}}/weatherforecast/
+GET {{CustomMonopoly.Server_HostAddress}}/weatherforecast/
 Accept: application/json
 
 ###

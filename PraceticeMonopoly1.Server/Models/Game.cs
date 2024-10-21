@@ -1,8 +1,9 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Numerics;
-using PraceticeMonopoly1.Server.Models.BoardSquares;
+using CustomMonopoly.Server.Models.BoardSquares;
 
-namespace PraceticeMonopoly1.Server.Models
+namespace CustomMonopoly.Server.Models
 {
     public class Game
     {
@@ -13,14 +14,9 @@ namespace PraceticeMonopoly1.Server.Models
 
       
         public Game() {
-            ConfigureGame();
-        }
-
-        //Sets up the board spaces
-        public void ConfigureGame()
-        {
             
         }
+
 
 
     }

@@ -1,7 +1,8 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using PraceticeMonopoly1.Server.Models.BoardSquares;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using CustomMonopoly.Server.Models.BoardSquares;
 
-namespace PraceticeMonopoly1.Server.Models
+namespace CustomMonopoly.Server.Models
 {
     public class Player
     {
@@ -12,12 +13,19 @@ namespace PraceticeMonopoly1.Server.Models
         public int CurrentPostion { get; set; }
         public int GameId { get; set; }
         public int NumberOfRailroads { get; set; }
+        public string UserId { get; set; } 
+        /// <summary>
+        /// Color of the players puck
+        /// </summary>
+        public string Color = "Blue";
         [ForeignKey("GameId")]
         public Game Game { get; set; }
 
-        ICollection<PropertySquare> OwnedProperties { get; set; }
+        public ICollection<PlayerProperty> OwnedProperties { get; set; }
+        [ForeignKey("UserId")]
+        public ApplicationUser User { get; set; }
 
-        public int Roll2Dice()
+        public int RollTwoDice()
         {
             Random rnd = new Random();
             return rnd.Next(0,7) + rnd.Next(0,7);

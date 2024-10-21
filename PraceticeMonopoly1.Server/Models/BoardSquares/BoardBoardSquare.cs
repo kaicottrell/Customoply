@@ -1,16 +1,19 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace PraceticeMonopoly1.Server.Models.BoardSquares
+namespace CustomMonopoly.Server.Models.BoardSquares
 {
     /// <summary>
     /// Acts as an associative table to bind board squares to boards
     /// </summary>
     public class BoardBoardSquare
     {
-        public int Id { get; set; }
-        public int Order { get; set; }
+        [Key, Column(Order = 1)]
         public int BoardId { get; set; }
+        [Key, Column(Order = 2)]
         public int BoardSquareId { get; set; }
+        public int Order { get; set; }
         [ForeignKey("BoardId")]
         public virtual Board Board { get; set; }
         [ForeignKey("BoardSquareId")]

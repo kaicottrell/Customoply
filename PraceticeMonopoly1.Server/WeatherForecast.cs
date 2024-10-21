@@ -1,4 +1,4 @@
-namespace PraceticeMonopoly1.Server
+namespace CustomMonopoly.Server
 {
     public class WeatherForecast
     {

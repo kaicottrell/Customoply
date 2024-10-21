@@ -1,7 +1,10 @@
-﻿namespace PraceticeMonopoly1.Server.Models.Cards
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace CustomMonopoly.Server.Models.Cards
 {
     public class ChanceCard
     {
+        [Key]
         public int Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }

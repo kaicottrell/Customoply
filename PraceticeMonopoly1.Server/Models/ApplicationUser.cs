@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 
-namespace PraceticeMonopoly1.Server.Models
+namespace CustomMonopoly.Server.Models
 {
     public class ApplicationUser : IdentityUser
     {

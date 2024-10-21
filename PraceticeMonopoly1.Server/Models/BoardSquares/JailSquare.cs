@@ -1,8 +1,8 @@
 ﻿using System.Runtime.ConstrainedExecution;
 
-namespace PraceticeMonopoly1.Server.Models.BoardSquares
+namespace CustomMonopoly.Server.Models.BoardSquares
 {
-    public class JailBoardSquare : BoardSquare
+    public class JailSquare : BoardSquare
     {
         public int TurnsInJail { get; } = 3; // Read-only property
 

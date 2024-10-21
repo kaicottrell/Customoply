@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 
-namespace PraceticeMonopoly1.Server.Controllers
+namespace CustomMonopoly.Server.Controllers
 {
     [ApiController]
     [Route("[controller]")]

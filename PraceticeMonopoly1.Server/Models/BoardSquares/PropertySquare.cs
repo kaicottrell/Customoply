@@ -1,4 +1,4 @@
-﻿namespace PraceticeMonopoly1.Server.Models.BoardSquares
+﻿namespace CustomMonopoly.Server.Models.BoardSquares
 {
     public class PropertySquare : BoardSquare
     {
@@ -8,5 +8,6 @@
         public int MorgageValue { get; set; }
         public int Cost { get; set; }
         public bool IsRailRoad { get; set; }
+        public ICollection<PlayerProperty> PlayerProperties { get; set; }
     }
 }
