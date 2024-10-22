@@ -1,8 +1,11 @@
-﻿namespace CustomMonopoly.Server.ViewModels
+﻿using CustomMonopoly.Server.Models;
+
+namespace CustomMonopoly.Server.ViewModels
 {
-    public abstract class CardEvent : BoardEvent
+    public abstract class CardEvent : BoardEvent, IPlayerEvent
     {
         public CardType CardType { get; set; }
+        public Player Player { get; set; }
     }
 
  
@@ -10,24 +13,15 @@
     public class PayMoneyCardEvent : CardEvent
     {
         /// <summary>
-        /// Holds the player associated with the event type
-        /// </summary>
-        public int AssociatedPlayerId { get; set; }
-
-        /// <summary>
         /// Amount of money to be paid
         /// </summary>
         public decimal Amount { get; set; }
+        public Player Player { get; set; }
+
     }
 
     public class GainMoneyCardEvent : CardEvent
     {
-
-        /// <summary>
-        /// Holds the player associated with the event type
-        /// </summary>
-        public int AssociatedPlayerId { get; set; }
-
         /// <summary>
         /// Amount of money to be gained
         /// </summary>

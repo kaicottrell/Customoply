@@ -1,13 +1,19 @@
-﻿using CustomMonopoly.Server.Models.BoardSquares;
+﻿using CustomMonopoly.Server.Models;
+using CustomMonopoly.Server.Models.BoardSquares;
 using System.ComponentModel.DataAnnotations;
 
 namespace CustomMonopoly.Server.ViewModels
 {
   
-    public abstract class PropertyEvent : BoardEvent
+    public abstract class PropertyEvent : BoardEvent, IPlayerEvent
     {
         // Common properties for all property events can be added here
         public PropertySquare PropertySquare { get; protected set; }
+        /// <summary>
+        /// Holds the player associated with the event type
+        /// </summary>
+        public Player Player { get; set; }
+
     }
 
     public class AvailableForPurchaseEvent : PropertyEvent
@@ -34,13 +40,13 @@ namespace CustomMonopoly.Server.ViewModels
             }
         }
 
-        public enum PropertyOptionType
-        {
-            Purchase,
-            Auction
-        }
+       
     }
- 
+    public enum PropertyOptionType
+    {
+        Purchase,
+        Auction
+    }
 
     public class HomeNoActionEvent : PropertyEvent
     {

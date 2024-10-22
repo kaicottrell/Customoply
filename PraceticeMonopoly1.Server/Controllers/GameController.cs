@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using CustomMonopoly.Server.Services;
 using CustomMonopoly.Server.Models;
 using System.Security.Claims;
+using CustomMonopoly.Server.ViewModels;
 
 namespace CustomMonopoly.Server.Controllers
 {
@@ -12,11 +13,13 @@ namespace CustomMonopoly.Server.Controllers
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly GameService _gameService;
+        private readonly GameEventHandlingService _gameEventHandlingService;
         //Inject database context
-        public GameController(UserManager<ApplicationUser> userManager, GameService gameService)
+        public GameController(UserManager<ApplicationUser> userManager, GameService gameService, GameEventHandlingService gameEventHandlingService)
         {
             _userManager = userManager;
             _gameService = gameService;
+            _gameEventHandlingService = gameEventHandlingService;
         }
 
         [HttpPost("MovePlayer")]
@@ -25,26 +28,41 @@ namespace CustomMonopoly.Server.Controllers
             //Get the user's id
             var userId = _userManager.GetUserId(User);
 
-            var propertyAndAvailability = _gameService.MovePlayer(userId, gameId);
-            return Ok(propertyAndAvailability);
+            var boardEvent = _gameService.MovePlayer(userId, gameId);
+            return Ok(boardEvent);
         }
-        [HttpPost("BuyProperty")]
-        public IActionResult BuyProperty(int propertyId, int gameId)
+        [HttpPost("HandleBoardEventResponse")]
+        public IActionResult HandleBoardEventResponse([FromBody] BoardEventResponse boardEventResponse)
         {
-            //Get the user's id
-            var userId = _userManager.GetUserId(User);
-
-            var (success, message) = _gameService.BuyProperty(propertyId, userId, gameId);
-
-            if (success)
+            if (boardEventResponse.IsAcknowledged)
             {
-                return Ok(message);
+                switch (boardEventResponse.BoardEvent)
+                {
+                    case AvailableForPurchaseEvent availableForPurchaseEvent:
+                        if (boardEventResponse is AvailableForPurchaseEventResponse propertyPurchaseResponse)
+                        {
+                            _gameEventHandlingService.HandleAvailableForPurchaseEvent(availableForPurchaseEvent, propertyPurchaseResponse.PropertyOptionType);
+                            return Ok();
+                        }
+                        else
+                        {
+                            return BadRequest("Event Response Mismatch");
+                        }
+                    case HomeNoActionEvent:
+                        return Ok();
+                    case RentRequiredEvent rentRequiredEvent:
+                        _gameEventHandlingService.HandleRentRequiredEvent(rentRequiredEvent);
+                        return Ok("Rent Successfully Paid");
+                    //TODO: Handle to Jail event, card events etc.
+
+                }
+                return Ok("Event Response Handled Successfully");
+
             }
-            else
-            {
-                return BadRequest(message);
-            }
+            //TODO: Switch player turn
+            return BadRequest("Board Event not successfully acknowledged");
         }
+  
         //[HttpGet("GetGameBoard")]
         //public IActionResult GetGameBoard()
         //{

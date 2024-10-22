@@ -22,6 +22,7 @@ namespace CustomMonopoly.Server.Data
         public DbSet<JailSquare> JailSquares { get; set; }
         public DbSet<PropertySquare> PropertySquares { get; set; }
         public DbSet<RailRoadSquare> RailRoadSquares { get; set; }
+        public DbSet<TaxSquare> TaxSquares { get; set; }
 
 
         //Cards
@@ -80,14 +81,17 @@ namespace CustomMonopoly.Server.Data
             //// Configure the discriminator for the BoardSquare hierarchy
             modelBuilder.Entity<BoardSquare>()
                 .HasDiscriminator<string>("Discriminator")
-                .HasValue<PropertySquare>("PropertySquare")
+                .HasValue<TaxSquare>("BuildablePropertySquare")
                 .HasValue<FreeParkingSquare>("FreeParkingSquare")
                 .HasValue<GoSquare>("GoSquare")
                 .HasValue<GoToJailSquare>("GoToJailSquare")
                 .HasValue<JailSquare>("JailSquare")
                 .HasValue<CommunityChestSquare>("CommunityChestSquare")
                 .HasValue<ChanceSquare>("ChanceSquare")
-                .HasValue<RailRoadSquare>("RailroadSquare");
+                .HasValue<RailRoadSquare>("RailroadSquare")
+                .HasValue<TaxSquare>("TaxSquare")
+                .HasValue<UtilitySquare>("UtilitySquare");
+
 
             // Additional configurations for other derived types can be added here
         }

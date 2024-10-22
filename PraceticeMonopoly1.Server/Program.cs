@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using CustomMonopoly.Server.Data;
 using CustomMonopoly.Server.Models;
 using Microsoft.AspNetCore.Identity;
+using CustomMonopoly.Server.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,7 +18,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
-
+//DI Services
+builder.Services.AddScoped<GameService>();
+builder.Services.AddScoped<GameEventHandlingService>();
 
 var app = builder.Build();
 

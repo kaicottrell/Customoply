@@ -8,6 +8,9 @@ namespace CustomMonopoly.Server.Models.BoardSquares
         public int Id { get; set; }
         public int CreatorId { get; set; }
         public ICollection<BoardBoardSquare> BoardBoardSquares { get; set; }
-
+        protected BoardSquare()
+        {
+            BoardBoardSquares = new List<BoardBoardSquare>();
+        }
     }
 }

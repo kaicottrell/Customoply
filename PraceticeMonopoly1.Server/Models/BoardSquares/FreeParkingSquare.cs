@@ -2,6 +2,14 @@
 {
     public class FreeParkingSquare : BoardSquare
     {
-        public int CashPrize { get; set; } = 0;
+        public int CashPrize { get; set; }
+        public FreeParkingSquare()
+        {
+            CashPrize = 0;
+        }
+        public FreeParkingSquare(int cashPrize)
+        {
+            CashPrize = cashPrize;
+        }
     }
 }

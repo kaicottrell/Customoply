@@ -2,6 +2,12 @@
 {
     public class GoSquare : BoardSquare
     {
-        public int RewardCash { get; } = 300;
+        public int RewardCash { get; }
+        public GoSquare() {
+            RewardCash = 300;
+        } 
+        public GoSquare(int rewardCash) {
+            RewardCash = rewardCash;
+        }
     }
 }
