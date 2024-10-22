@@ -2,6 +2,7 @@
 using CustomMonopoly.Server.Models;
 using CustomMonopoly.Server.Models.BoardSquares;
 using CustomMonopoly.Server.Models.Cards;
+using CustomMonopoly.Server.Models.Settings;
 
 namespace CustomMonopoly.Server.Data
 {
@@ -31,7 +32,12 @@ namespace CustomMonopoly.Server.Data
         public DbSet<CommunityChestCard> CommunityChestCards { get; set; }
         public DbSet<ChanceCard> ChanceCards { get; set; }
 
+        //Settings
+        public DbSet<GameRailRoadMappingSetting> GameRailRoadMappingSettings { get; set; }
+        public DbSet<RailRoadMappingSetting> RailRoadMappingSettings { get; set; }
 
+
+        //Games
         public DbSet<Player> Players { get; set; }
         public DbSet<PlayerProperty> PlayerProperties { get; set; }
         public DbSet<Game> Games { get; set; }
