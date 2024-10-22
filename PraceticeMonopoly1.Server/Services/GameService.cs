@@ -5,6 +5,7 @@ using CustomMonopoly.Server.Data;
 using CustomMonopoly.Server.ViewModels;
 using CustomMonopoly.Server.Exceptions;
 using static CustomMonopoly.Server.ViewModels.AvailableForPurchaseEvent;
+using Microsoft.EntityFrameworkCore;
 
 namespace CustomMonopoly.Server.Services
 {
@@ -74,7 +75,7 @@ namespace CustomMonopoly.Server.Services
                     //Owned by another player -- pay rent
                     else
                     {
-                        int rent = DetermineRent(playerProperty, propertySquare);
+                        int rent = DetermineRent(playerProperty, propertySquare, diceRoll);
                         boardEvent = new RentRequiredEvent(rent, $"Pay {player.Color} Player ${rent}", player.Color);
                     }
                     break;
@@ -105,17 +106,50 @@ namespace CustomMonopoly.Server.Services
             return boardEvent ?? new HomeNoActionEvent();
 
         }
-    
+        /// <summary>
+        /// Saves the game and the inital player values
+        /// </summary>
+        /// <param name="game"></param>
+        /// <param name="player"></param>
+        public void StartGame(Game game, Player player)
+        {
+            _db.Add(game);
+            _db.Add(player);
+            _db.SaveChanges();
+        }
         /// <summary>
         /// Determines the rent cost based on the number of houses and if there is a hotel
         /// </summary>
         /// <returns>A tuple representing the amount of rent and the color of the player the rent is to</returns>
-        private int DetermineRent(PlayerProperty playerProperty, PropertySquare propertySquare)
+        private int DetermineRent(PlayerProperty playerProperty, PropertySquare propertySquare, int diceRoll)
         {
+            // rent is based on the number of railroads as defined by the railroad settings.
+            var ownedByPlayer = playerProperty.Player;
+
             //Determine if it is a utlity, train, or buildable property and act accordingly
             switch (propertySquare)
             {
                 case BuildablePropertySquare buildablePropertySquare:
+                    // See if it is a monopoly which doubles rent
+                    // Get all of the player properties of the same color owned by the player
+                    var ownedSameColorPropertyCount = _db.PlayerProperties.Where(pp =>
+                        pp.PropertySquare is BuildablePropertySquare && 
+                        pp.PropertySquare.Color == propertySquare.Color &&
+                        pp.PlayerId == ownedByPlayer.Id
+                    ).Count();
+
+                    var gameSameColorPropertyCount = _db.Games
+                       .Where(game => game.Id == ownedByPlayer.GameId)
+                       .Include(game => game.Board)
+                        .ThenInclude(board => board.BoardBoardSquares)
+                            .ThenInclude(bbs => bbs.BoardSquare)
+                        .SelectMany(game => game.Board.BoardBoardSquares)
+                        .Where(bs => bs.BoardSquare is BuildablePropertySquare && ((BuildablePropertySquare)bs.BoardSquare).Color == propertySquare.Color)
+                        .Count();
+
+                    bool isMonopoly = ownedSameColorPropertyCount == gameSameColorPropertyCount;
+                    int multiplier = (isMonopoly ? 2 : 1);  
+
                     if (playerProperty.HotelCount == 1)
                     {
                         return buildablePropertySquare.RentHotel;
@@ -123,7 +157,7 @@ namespace CustomMonopoly.Server.Services
                     switch (playerProperty.HouseCount)
                     {
                         case 0:
-                            return buildablePropertySquare.RentNoHouse;
+                            return buildablePropertySquare.RentNoHouse * multiplier;
                         case 1:
                             return buildablePropertySquare.RentOneHouse;
                         case 2:
@@ -136,10 +170,65 @@ namespace CustomMonopoly.Server.Services
                             throw new InvalidPropertyHouseCountException();
                     }
                 case RailRoadSquare railRoadSquare:
+                 
+                    //TODO: Create own generic repository to handle includes in a more efficient way
+                    var associatedRailroadPlayerProperties = _db.PlayerProperties.Where(pp => pp.PropertySquare is RailRoadSquare && pp.PlayerId == ownedByPlayer.Id)
+                        .Include("PropertySquare")
+                        .ToList();
+                    //utilize the railRoad game settings if any otherwise use default. 
+                    var railroadGameSettings = _db.GameRailRoadMappingSettings
+                        .Where(grrms => grrms.GameId == ownedByPlayer.GameId)
+                        .Include("RailRoadMappingSetting")
+                        .ToList();
 
-                    break;
+                    int ownedRailroadCount = associatedRailroadPlayerProperties.Count();
+                    if (railroadGameSettings.Any())
+                    {
+                        //get the associated amount from the settings
+                        var associatedRailroadSetting = railroadGameSettings.Where(ars => ars.RailRoadMappingSetting.NumberOfRailRoadsOwned == ownedRailroadCount)
+                            .FirstOrDefault();
+
+                        if(associatedRailroadSetting == null)
+                            throw new InvalidOperationException($"Setting not found for the current number of railroads as owned by player: {ownedByPlayer.Id}");
+                        return associatedRailroadSetting.RailRoadMappingSetting.RentCost;
+                    }
+                    // Default
+                    else 
+                    {
+                        switch (ownedRailroadCount)
+                        {
+                            case 1:
+                                return 25;
+                            case 2:
+                                return 50;
+                            case 3:
+                                return 100;
+                            default:
+                                if (ownedRailroadCount >= 4)
+                                {
+                                    return 200;
+                                }
+                                throw new InvalidOperationException($"Invalid Number of RailRoads owned by player: {ownedByPlayer.Id}");
+                        }
+                    }
+                    
                 case UtilitySquare utilitySquare:
-                    break;
+                    var associatedUtilityPlayerProperties = _db.PlayerProperties.Where(pp => pp.PropertySquare is UtilitySquare && pp.PlayerId == ownedByPlayer.Id)
+                      .Include("PropertySquare")
+                      .ToList();
+                    ///todo: add customizablility here to allow for games to have utlity settings similar to <see cref="GameRailRoadMappingSetting">
+                    int countOfUtilProperties = associatedUtilityPlayerProperties.Count();
+                    switch (countOfUtilProperties)
+                    {
+                        case 1:
+                            return utilitySquare.BaseRent * diceRoll;
+                        case 2:
+                            return (int)(utilitySquare.BaseRent * diceRoll * 2.5);
+                        default:
+                            throw new InvalidOperationException("This number of utility properties is not expected to be owned by the player");
+
+                    }
+
                 default:
                     throw new NotImplementedException();    
             }
