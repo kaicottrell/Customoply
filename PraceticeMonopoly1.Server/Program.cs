@@ -18,9 +18,11 @@ builder.Services.AddDbContext<ApplicationDbContext>(
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
-//DI Services
+
+// DI Services
 builder.Services.AddScoped<GameService>();
 builder.Services.AddScoped<GameEventHandlingService>();
+builder.Services.AddScoped<DatabaseInitializer>();
 
 var app = builder.Build();
 
@@ -41,5 +43,12 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.MapFallbackToFile("/index.html");
+
+// Initialize the database
+using (var scope = app.Services.CreateScope())
+{
+    var initializer = scope.ServiceProvider.GetRequiredService<DatabaseInitializer>();
+    initializer.Initialize();
+}
 
 app.Run();

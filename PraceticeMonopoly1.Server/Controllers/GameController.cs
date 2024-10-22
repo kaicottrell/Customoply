@@ -4,10 +4,12 @@ using CustomMonopoly.Server.Services;
 using CustomMonopoly.Server.Models;
 using System.Security.Claims;
 using CustomMonopoly.Server.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CustomMonopoly.Server.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("[controller]")]
     public class GameController : ControllerBase
     {
@@ -21,7 +23,15 @@ namespace CustomMonopoly.Server.Controllers
             _gameService = gameService;
             _gameEventHandlingService = gameEventHandlingService;
         }
-
+        [HttpGet("StartAndGetGame")]
+        public IActionResult StartAndGetGame()
+        {
+            //Get the user's id
+            var userId = _userManager.GetUserId(User);
+            //Create a new player for the game
+            var player = new Player(1500, null, 0, 0, userId, "Blue");
+            Game game = new Game(player);
+        }
         [HttpPost("MovePlayer")]
         public IActionResult MovePlayer(int gameId)
         {

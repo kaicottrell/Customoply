@@ -19,5 +19,11 @@ namespace CustomMonopoly.Server.Models.BoardSquares
         [ForeignKey("BoardSquareId")]
         public virtual BoardSquare BoardSquare { get; set; }
 
+        public BoardBoardSquare(BoardSquare boardSquare, Board board)
+        {
+            Board = board;
+            BoardSquare = boardSquare;
+        }
+
     }
 }

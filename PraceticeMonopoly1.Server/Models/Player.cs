@@ -24,9 +24,8 @@ namespace CustomMonopoly.Server.Models
         [ForeignKey("UserId")]
         public ApplicationUser? User { get; set; }
 
-        public Player(int id, int balance, int? turnsInJail, int currentPosition, int gameId, string userId, string color)
+        public Player(int balance, int? turnsInJail, int currentPosition, int gameId, string userId, string color)
         {
-            Id = id;
             Balance = balance;
             TurnsInJail = turnsInJail;
             CurrentPostion = currentPosition;
