@@ -21,6 +21,7 @@ namespace CustomMonopoly.Server.Data
         public DbSet<GoToJailSquare> GoToJailSquares { get; set; }
         public DbSet<JailSquare> JailSquares { get; set; }
         public DbSet<PropertySquare> PropertySquares { get; set; }
+        public DbSet<RailRoadSquare> RailRoadSquares { get; set; }
 
 
         //Cards
@@ -85,7 +86,8 @@ namespace CustomMonopoly.Server.Data
                 .HasValue<GoToJailSquare>("GoToJailSquare")
                 .HasValue<JailSquare>("JailSquare")
                 .HasValue<CommunityChestSquare>("CommunityChestSquare")
-                .HasValue<ChanceSquare>("ChanceSquare");
+                .HasValue<ChanceSquare>("ChanceSquare")
+                .HasValue<RailRoadSquare>("RailroadSquare");
 
             // Additional configurations for other derived types can be added here
         }
