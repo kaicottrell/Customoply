@@ -91,7 +91,7 @@ namespace CustomMonopoly.Server.Services
             List<BoardBoardSquare> boardBoardSquares = new List<BoardBoardSquare>();
             foreach (BoardSquare square in boardSquares)
             {
-                boardBoardSquares.Add(new BoardBoardSquare(square, board));
+                boardBoardSquares.Add(new BoardBoardSquare { BoardSquareId =  square.Id, BoardId = board.Id });
             }
             return boardBoardSquares;
         }

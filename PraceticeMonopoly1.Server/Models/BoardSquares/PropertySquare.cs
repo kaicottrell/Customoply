@@ -7,8 +7,9 @@
         public int MorgageValue { get; }
         public int Price { get; }
         public ICollection<PlayerProperty> PlayerProperties { get; set; }
-
-        public PropertySquare(string name, string color, int morgageValue, int price)
+        // Default constructor for EF Core
+        protected PropertySquare() { }
+        protected PropertySquare(string name, string color, int morgageValue, int price)
         {
             Name = name;
             Color = color;

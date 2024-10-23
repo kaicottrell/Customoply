@@ -23,7 +23,7 @@ namespace CustomMonopoly.Server.Models
         public ICollection<PlayerProperty>? OwnedProperties { get; set; }
         [ForeignKey("UserId")]
         public ApplicationUser? User { get; set; }
-
+        public Player() { }
         public Player(int balance, int? turnsInJail, int currentPosition, int gameId, string userId, string color)
         {
             Balance = balance;

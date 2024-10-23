@@ -30,7 +30,8 @@ namespace CustomMonopoly.Server.Controllers
             var userId = _userManager.GetUserId(User);
             //Create a new player for the game
             var player = new Player(1500, null, 0, 0, userId, "Blue");
-            Game game = new Game(player);
+            Game game = new Game();
+            return Ok(_gameService.StartGame(game, player));
         }
         [HttpPost("MovePlayer")]
         public IActionResult MovePlayer(int gameId)

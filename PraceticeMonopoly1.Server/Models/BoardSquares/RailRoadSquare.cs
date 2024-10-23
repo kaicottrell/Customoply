@@ -10,11 +10,14 @@ namespace CustomMonopoly.Server.Models.BoardSquares
         /// Stores the Mappings used for  
         /// </summary>
         [NotMapped]
-        public List<RailRoadMappingSetting> RailRoadRentMappings { get; set; }
+        public List<RailRoadMappingSetting> RailRoadRentMappings { get; set; } = new List<RailRoadMappingSetting>();
+        // Default constructor for EF Core
+        public RailRoadSquare() { }
+
+        // Parameterized constructor
         public RailRoadSquare(string name, string color, int morgageValue, int price)
             : base(name, color, morgageValue, price)
         {
-            RailRoadRentMappings = new List<RailRoadMappingSetting>();
         }
     }
 }

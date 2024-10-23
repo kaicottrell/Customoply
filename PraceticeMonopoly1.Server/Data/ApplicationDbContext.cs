@@ -61,6 +61,8 @@ namespace CustomMonopoly.Server.Data
 
             modelBuilder.Entity<PlayerProperty>()
                 .HasKey(pp => new { pp.PlayerId, pp.PropertySquareId });
+            modelBuilder.Entity<GameRailRoadMappingSetting>()
+                .HasKey(grrms => new { grrms.GameId, grrms.RailRoadMappingSettingId });
 
             //Configure relationship for player properties having one player (with many player properties)
             //modelBuilder.Entity<PlayerProperty>()
