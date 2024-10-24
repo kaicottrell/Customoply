@@ -3,6 +3,7 @@ using CustomMonopoly.Server.Data;
 using CustomMonopoly.Server.Models;
 using Microsoft.AspNetCore.Identity;
 using CustomMonopoly.Server.Services;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,7 +18,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(
 );
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
-    .AddEntityFrameworkStores<ApplicationDbContext>();
+    .AddDefaultTokenProviders()
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddApiEndpoints();
 
 // DI Services
 builder.Services.AddScoped<GameService>();
@@ -39,9 +42,21 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
+app.UseAuthentication();
+
+app.MapGet("/api/pingauth", (ClaimsPrincipal user) =>
+{
+    var email = user.FindFirstValue(ClaimTypes.Email);
+    if (email == null)
+    {
+        return Results.Unauthorized();
+    }
+    return Results.Json(new { Email = email });
+    // if user is signed in return success else return 404 not authorized
+}).RequireAuthorization();
 
 app.MapControllers();
-
+app.MapIdentityApi<ApplicationUser>();
 app.MapFallbackToFile("/index.html");
 
 // Initialize the database
@@ -50,5 +65,6 @@ using (var scope = app.Services.CreateScope())
     var initializer = scope.ServiceProvider.GetRequiredService<DatabaseInitializer>();
     initializer.Initialize();
 }
+
 
 app.Run();

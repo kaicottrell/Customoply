@@ -9,8 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 namespace CustomMonopoly.Server.Controllers
 {
     [ApiController]
-    [Authorize]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class GameController : ControllerBase
     {
         private readonly UserManager<ApplicationUser> _userManager;

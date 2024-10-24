@@ -114,17 +114,23 @@ namespace CustomMonopoly.Server.Services
 
         }
         /// <summary>
-        /// Saves the game and the inital player values
+        /// Saves the game and the inital player values. Sets the board
         /// </summary>
         /// <param name="game"></param>
         /// <param name="player"></param>
         /// <returns>the game id of the newly created game</returns>
-        public int StartGame(Game game, Player player)
+        public Game StartGame(Game game, Player player)
         {
+            var gameBoard = _db.Boards
+                .Include(b => b.BoardBoardSquares)
+                    .ThenInclude(bbs => bbs.BoardSquare)
+                .First();
+
+            game.Board = gameBoard;
             _db.Add(game);
             _db.Add(player);
             _db.SaveChanges();
-            return game.Id;
+            return game;
         }
         /// <summary>
         /// Determines the rent cost based the type of property, monopolies, and on the number of houses and if there is a hotel

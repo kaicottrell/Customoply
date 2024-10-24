@@ -5,7 +5,7 @@
         /// <summary>
         /// BaseRent to then be multiplied by the dice roll
         /// </summary>
-        public int BaseRent { get; }
+        public int BaseRent { get; set; }
         public UtilitySquare() { }
 
         public UtilitySquare(string name, string color, int morgageValue, int price, int baseRent)  : base(name, color, morgageValue, price)

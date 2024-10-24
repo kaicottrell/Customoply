@@ -3,10 +3,11 @@ using CustomMonopoly.Server.Models;
 using CustomMonopoly.Server.Models.BoardSquares;
 using CustomMonopoly.Server.Models.Cards;
 using CustomMonopoly.Server.Models.Settings;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace CustomMonopoly.Server.Data
 {
-    public class ApplicationDbContext : DbContext
+    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
         public DbSet<ApplicationUser> ApplicationUsers { get; set; }
 
@@ -89,13 +90,14 @@ namespace CustomMonopoly.Server.Data
             //// Configure the discriminator for the BoardSquare hierarchy
             modelBuilder.Entity<BoardSquare>()
                 .HasDiscriminator<string>("Discriminator")
-                .HasValue<TaxSquare>("BuildablePropertySquare")
+                .HasValue<BuildablePropertySquare>("BuildablePropertySquare")
                 .HasValue<FreeParkingSquare>("FreeParkingSquare")
                 .HasValue<GoSquare>("GoSquare")
                 .HasValue<GoToJailSquare>("GoToJailSquare")
                 .HasValue<JailSquare>("JailSquare")
                 .HasValue<CommunityChestSquare>("CommunityChestSquare")
                 .HasValue<ChanceSquare>("ChanceSquare")
+                .HasValue<PropertySquare>("PropertySquare")
                 .HasValue<RailRoadSquare>("RailroadSquare")
                 .HasValue<TaxSquare>("TaxSquare")
                 .HasValue<UtilitySquare>("UtilitySquare");

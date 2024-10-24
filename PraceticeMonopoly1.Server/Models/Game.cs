@@ -25,6 +25,7 @@ namespace CustomMonopoly.Server.Models
                 throw new Exception("Inappropriate use of function, ensure that board.boardboardsquares are correctly joined through LINQ");
             }
             return game.Board.BoardBoardSquares
+                .OrderBy(bbs => bbs.Order )
                 .Select(bbs => bbs.BoardSquare)
                 .ToList();
         }

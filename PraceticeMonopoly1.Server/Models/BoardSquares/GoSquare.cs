@@ -2,9 +2,9 @@
 {
     public class GoSquare : BoardSquare
     {
-        public int RewardCash { get; }
+        public int RewardCash { get; set; }
         public GoSquare() {
-            RewardCash = 300;
+            RewardCash = 200;
         } 
         public GoSquare(int rewardCash) {
             RewardCash = rewardCash;

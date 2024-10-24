@@ -89,9 +89,10 @@ namespace CustomMonopoly.Server.Services
         private List<BoardBoardSquare> LinkBoardSquaresToBoard(List<BoardSquare> boardSquares, Board board)
         {
             List<BoardBoardSquare> boardBoardSquares = new List<BoardBoardSquare>();
+            int index = 0;
             foreach (BoardSquare square in boardSquares)
             {
-                boardBoardSquares.Add(new BoardBoardSquare { BoardSquareId =  square.Id, BoardId = board.Id });
+                boardBoardSquares.Add(new BoardBoardSquare { BoardSquareId =  square.Id, BoardId = board.Id, Order = index++ });
             }
             return boardBoardSquares;
         }
