@@ -5,6 +5,7 @@ using CustomMonopoly.Server.Models;
 using System.Security.Claims;
 using CustomMonopoly.Server.ViewModels;
 using Microsoft.AspNetCore.Authorization;
+using CustomMonopoly.Server.Extensions;
 
 namespace CustomMonopoly.Server.Controllers
 {
@@ -27,10 +28,14 @@ namespace CustomMonopoly.Server.Controllers
         {
             //Get the user's id
             var userId = _userManager.GetUserId(User);
+            //Create new game
+            var newGame = _gameService.StartGame();
             //Create a new player for the game
-            var player = new Player(1500, null, 0, 0, userId, "Blue");
-            Game game = new Game();
-            return Ok(_gameService.StartGame(game, player));
+            var player = new Player(1500, null, 0, newGame.Id, userId, "Blue");
+            var players = _gameService.ConfigurePlayersForGame(player);
+            newGame.Players = players;
+
+            return Ok(newGame.ToGameDTO());
         }
         [HttpPost("MovePlayer")]
         public IActionResult MovePlayer(int gameId)

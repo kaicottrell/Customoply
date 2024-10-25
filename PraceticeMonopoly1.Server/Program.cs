@@ -44,7 +44,7 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 app.UseAuthentication();
 
-app.MapGet("/api/pingauth", (ClaimsPrincipal user) =>
+app.MapGet("/pingauth", (ClaimsPrincipal user) =>
 {
     var email = user.FindFirstValue(ClaimTypes.Email);
     if (email == null)
@@ -54,6 +54,12 @@ app.MapGet("/api/pingauth", (ClaimsPrincipal user) =>
     return Results.Json(new { Email = email });
     // if user is signed in return success else return 404 not authorized
 }).RequireAuthorization();
+
+app.MapPost("/signout", async (SignInManager<ApplicationUser> signInManager) =>
+{
+    await signInManager.SignOutAsync();
+    return Results.Ok();
+});
 
 app.MapControllers();
 app.MapIdentityApi<ApplicationUser>();

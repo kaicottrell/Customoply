@@ -1,25 +1,32 @@
-import { useEffect, useState } from 'react';
+import {
+    createBrowserRouter,
+    createRoutesFromElements,
+    Route,
+    RouterProvider,
+} from "react-router-dom";
+import PlayMonopoly from "pages/PlayMonopoly";
+import Register from "pages/Register";
+import SignIn from "pages/SignIn";
+import AuthorizationView from "auth/AuthorizeView";
 import './App.css';
 
 function App() {
-    
+    const router = createBrowserRouter(
+        <>
+            <Route path="/" element={PlayMonopoly} />
+            <Route path="/register" element={Register} />
+            <Route path="/signin" element={SignIn} />
+        </>
+    );
 
    
 
     
     return (
-        <div>
-            <h1 id="tableLabel">Weather forecast</h1>
-            <p>This component demonstrates fetching data from the server.</p>
-            {contents}
-        </div>
+        <RouterProvider router={ router }>
     );
     
-    async function populateWeatherData() {
-        const response = await fetch('weatherforecast');
-        const data = await response.json();
-        setForecasts(data);
-    }
+   
 }
 
 export default App;
