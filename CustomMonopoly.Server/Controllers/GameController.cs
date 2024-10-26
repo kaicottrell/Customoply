@@ -11,6 +11,7 @@ namespace CustomMonopoly.Server.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class GameController : ControllerBase
     {
         private readonly UserManager<ApplicationUser> _userManager;
@@ -23,7 +24,7 @@ namespace CustomMonopoly.Server.Controllers
             _gameService = gameService;
             _gameEventHandlingService = gameEventHandlingService;
         }
-        [HttpGet("StartAndGetGame")]
+        [HttpPost("StartAndGetGame")]
         public IActionResult StartAndGetGame()
         {
             //Get the user's id
@@ -36,6 +37,18 @@ namespace CustomMonopoly.Server.Controllers
             newGame.Players = players;
 
             return Ok(newGame.ToGameDTO());
+        }
+        [HttpGet("GetExistingGame")]
+        public IActionResult GetExistingGame()
+        {
+            //Get the user's id
+            var userId = _userManager.GetUserId(User);
+            if (userId == null)
+            {
+                return BadRequest("User not found");
+            }
+            var game = _gameService.GetExistingGame(userId);
+            return Ok(game?.ToGameDTO());
         }
         [HttpPost("MovePlayer")]
         public IActionResult MovePlayer(int gameId)

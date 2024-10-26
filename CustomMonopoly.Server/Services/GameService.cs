@@ -137,6 +137,13 @@ namespace CustomMonopoly.Server.Services
             _db.SaveChanges();
             return _db.Players.Where(p => p.GameId == player.GameId).ToList();  
         }
+        public Game? GetExistingGame(string userId)
+        {
+            var existingGame = _db.Games
+                .Where(g => g.Players.Any(p => p.UserId == userId))
+                .FirstOrDefault();
+            return existingGame;
+        }
         /// <summary>
         /// Determines the rent cost based the type of property, monopolies, and on the number of houses and if there is a hotel
         /// </summary>

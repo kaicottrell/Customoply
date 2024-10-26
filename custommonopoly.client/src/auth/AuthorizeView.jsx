@@ -16,14 +16,18 @@ function AuthorizeView(props) {
 
         async function verifyLoginWithRetry() {
             try {
-                let response = await fetch("/pingauth", { method: "GET" });
+                let response = await fetch("/account/pingauth", { method: "GET" });
                 if (response.status === 200) {
                     const contentType = response.headers.get("content-type");
+
                     if (contentType && contentType.indexOf("application/json") !== -1) {
                         let pingData = await response.json();
                         setEmail(pingData.email);
                         setIsAuthorized(true);
                     } else {
+                        console.log("Unexpected content-type:", contentType);
+                        let responseBody = await response.text();
+                        console.log("Response body:", responseBody);
                         throw new Error("Expected JSON result");
                     }
                 } else if (response.status === 401) {
@@ -39,8 +43,6 @@ function AuthorizeView(props) {
                 } else {
                     console.error("Max retries reached", error);
                 }
-            } finally {
-                setIsLoading(false);
             }
         }
 
@@ -48,9 +50,14 @@ function AuthorizeView(props) {
             return new Promise((resolve) => setTimeout(resolve, delay));
         }
 
-        verifyLoginWithRetry().catch(error => {
-            console.error("Unexpected error while pinging for authentication", error);
-        });
+        verifyLoginWithRetry()
+            .catch(error => {
+                console.error("Unexpected error while pinging for authentication", error);
+            })
+            .finally(() => {
+                setIsLoading(false);
+            });
+
     }, []);
 
     if (isLoading) {
