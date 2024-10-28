@@ -18,8 +18,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(
 );
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
-    .AddDefaultTokenProviders()
     .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddDefaultTokenProviders()
     .AddApiEndpoints();
 
 // DI Services
@@ -41,8 +41,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseAuthorization();
 app.UseAuthentication();
+app.UseAuthorization();
 
 
 app.MapPost("/signout", async (SignInManager<ApplicationUser> signInManager) =>

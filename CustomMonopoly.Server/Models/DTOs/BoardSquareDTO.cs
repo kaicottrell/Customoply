@@ -5,6 +5,7 @@ namespace CustomMonopoly.Server.Models.DTOs
     public class BoardSquareDTO
     {
         public string? Color { get; set; } 
+        public string Name { get; set; }
         public int OrderNumber { get; set; }
         public string Type { get; set; }
         public int? HouseCount { get; set; }
@@ -13,6 +14,19 @@ namespace CustomMonopoly.Server.Models.DTOs
         {
             OrderNumber = order;
             Color = boardSquare is PropertySquare ps ? ps.Color : null;
+            Name = boardSquare switch
+            {
+                PropertySquare prosq => prosq.Name,
+                ChanceSquare => "Chance",
+                CommunityChestSquare => "Community Chest",
+                GoToJailSquare => "Go To Jail",
+                JailSquare => "Jail",
+                FreeParkingSquare => "Free Parking",
+                GoSquare => "Go",
+                TaxSquare => "Tax",
+                _ => throw new ArgumentOutOfRangeException(nameof(boardSquare), $"Unhandled board square type: {boardSquare.GetType()}")
+            };
+
             Type = boardSquare switch
             {
                 BuildablePropertySquare => BoardSquareType.BuildableProperty.ToString(),

@@ -47,7 +47,7 @@ export default defineConfig({
                 target,
                 secure: false
             } ,
-            '^/api/game/': {
+            '^/api/game': {
                 target,
                 secure: false
             },

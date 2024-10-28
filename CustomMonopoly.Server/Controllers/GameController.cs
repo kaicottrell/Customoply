@@ -10,8 +10,8 @@ using CustomMonopoly.Server.Extensions;
 namespace CustomMonopoly.Server.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
     [Authorize]
+    [Route("api/[controller]")]
     public class GameController : ControllerBase
     {
         private readonly UserManager<ApplicationUser> _userManager;

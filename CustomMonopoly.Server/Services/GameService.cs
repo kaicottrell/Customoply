@@ -140,6 +140,10 @@ namespace CustomMonopoly.Server.Services
         public Game? GetExistingGame(string userId)
         {
             var existingGame = _db.Games
+                .Include(g => g.Players)
+                .Include(g => g.Board)
+                    .ThenInclude(b => b.BoardBoardSquares)
+                    .ThenInclude(bbs => bbs.BoardSquare)
                 .Where(g => g.Players.Any(p => p.UserId == userId))
                 .FirstOrDefault();
             return existingGame;
