@@ -6,6 +6,7 @@
         public int Balance {  get; set; }
         public int CurrentPosition { get; set; }
         public string Color { get; set; }
+        public bool IsPlayersTurn { get; set; }
         public PlayerDTO(Player player)
         {
             Id = player.Id;

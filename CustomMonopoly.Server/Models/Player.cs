@@ -11,6 +11,8 @@ namespace CustomMonopoly.Server.Models
         public int Balance { get; set; }
         public int? TurnsInJail { get; set; }
         public int CurrentPostion { get; set; }
+        public bool IsPlayersTurn { get; set; }
+        public int TurnOrder { get; set; }
         public int GameId { get; set; }
         public string UserId { get; set; } 
         /// <summary>
