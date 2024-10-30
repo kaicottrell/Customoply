@@ -26,7 +26,7 @@ namespace CustomMonopoly.Server.Models
         [ForeignKey("UserId")]
         public ApplicationUser? User { get; set; }
         public Player() { }
-        public Player(int balance, int? turnsInJail, int currentPosition, int gameId, string userId, string color)
+        public Player(int balance, int? turnsInJail, int currentPosition, int gameId, string userId, string color, bool isPlayersTurn, int turnOrder)
         {
             Balance = balance;
             TurnsInJail = turnsInJail;
@@ -34,6 +34,8 @@ namespace CustomMonopoly.Server.Models
             GameId = gameId;
             UserId = userId;
             Color = color;
+            IsPlayersTurn = isPlayersTurn;
+            TurnOrder = turnOrder;
         }
         public int RollTwoDice()
         {

@@ -6,6 +6,7 @@ using CustomMonopoly.Server.ViewModels;
 using CustomMonopoly.Server.Exceptions;
 using static CustomMonopoly.Server.ViewModels.AvailableForPurchaseEvent;
 using Microsoft.EntityFrameworkCore;
+using CustomMonopoly.Server.Models.DTOs;
 
 namespace CustomMonopoly.Server.Services
 {
@@ -27,7 +28,7 @@ namespace CustomMonopoly.Server.Services
         /// <param name="gameId">The game being affected</param>
         /// <returns>A BoardEvent such as <see cref="AvailableForPurchaseEvent" /> or <see cref="GainMoneyCardEvent" /></returns>
         //TODO: Return a tuple of the GoEvent? find a way to display this on the frontend 
-        public BoardEvent MovePlayer(string userId, int gameId)
+        public BoardEvent MovePlayer( int gameId)
         {
             var game = _db.Games
                 .Include(g=> g.Board)
@@ -36,9 +37,8 @@ namespace CustomMonopoly.Server.Services
                 .First(g => g.Id == gameId);
 
             var boardSquareList = Game.GetGameBoardSquareList(game);
-
-            //Get the player associated with the userId
-            var player = _db.Players.Where(player => player.UserId == userId).First();
+            //Get the current player 
+            var player = GetCurrentPlayer(gameId);
             // move the player to another spot on the board
             int diceRoll = player.RollTwoDice();
             int oldPlayerPosition = player.CurrentPostion;
@@ -111,7 +111,6 @@ namespace CustomMonopoly.Server.Services
             }
 
             return boardEvent ?? new HomeNoActionEvent();
-
         }
         /// <summary>
         /// Saves the game, Sets the board
@@ -145,6 +144,17 @@ namespace CustomMonopoly.Server.Services
                     .ThenInclude(b => b.BoardBoardSquares)
                     .ThenInclude(bbs => bbs.BoardSquare)
                 .Where(g => g.Players.Any(p => p.UserId == userId))
+                .FirstOrDefault();
+            return existingGame;
+        }
+        public Game? GetExistingGame(int gameId)
+        {
+            var existingGame = _db.Games
+                .Include(g => g.Players)
+                .Include(g => g.Board)
+                    .ThenInclude(b => b.BoardBoardSquares)
+                    .ThenInclude(bbs => bbs.BoardSquare)
+                .Where(g => g.Id == gameId)
                 .FirstOrDefault();
             return existingGame;
         }
@@ -204,6 +214,31 @@ namespace CustomMonopoly.Server.Services
                 4 => 200,
                 _ => throw new InvalidOperationException($"Invalid Number of RailRoads owned by player: {ownedByPlayer.Id}")
             };
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="game">Game with associated players</param>
+        public void UpdateToNextPlayerTurn(int gameId)
+        {
+            // get the game and current player
+            var game = GetExistingGame(gameId);
+            var currentPlayer = GetCurrentPlayer(gameId);
+            // based on the order of the player turns 
+            int playerCount = game.Players.Count;
+            currentPlayer.IsPlayersTurn = false;
+
+            int newPlayersTurnOrder = (currentPlayer.TurnOrder + 1) % playerCount;
+            //Set the next players turn to true
+            var nextPlayer = _db.Players.Where(p => p.GameId == game.Id && p.TurnOrder == newPlayersTurnOrder).First();
+            nextPlayer.IsPlayersTurn = true;
+
+            _db.Update(currentPlayer);
+            _db.Update(nextPlayer);
+        }
+        private Player GetCurrentPlayer(int gameId)
+        {
+            return _db.Players.Where(p => p.GameId == gameId && p.IsPlayersTurn).First();
         }
         private int CalculateBuildablePropertyRent(BuildablePropertySquare buildablePropertySquare, PlayerProperty playerProperty)
         {

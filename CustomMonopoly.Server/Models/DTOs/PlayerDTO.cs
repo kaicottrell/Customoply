@@ -13,6 +13,7 @@
             Balance = player.Balance;
             CurrentPosition = player.CurrentPostion;
             Color = player.Color;
+            IsPlayersTurn = player.IsPlayersTurn;
         }
     }
 }

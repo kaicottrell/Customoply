@@ -6,6 +6,7 @@ using System.Security.Claims;
 using CustomMonopoly.Server.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using CustomMonopoly.Server.Extensions;
+using CustomMonopoly.Server.Models.DTOs;
 
 namespace CustomMonopoly.Server.Controllers
 {
@@ -32,7 +33,7 @@ namespace CustomMonopoly.Server.Controllers
             //Create new game
             var newGame = _gameService.StartGame();
             //Create a new player for the game
-            var player = new Player(1500, null, 0, newGame.Id, userId, "Blue");
+            var player = new Player(1500, null, 0, newGame.Id, userId, "Blue", true, 0);
             var players = _gameService.ConfigurePlayersForGame(player);
             newGame.Players = players;
 
@@ -53,15 +54,20 @@ namespace CustomMonopoly.Server.Controllers
         [HttpPost("MovePlayer")]
         public IActionResult MovePlayer(int gameId)
         {
-            //Get the user's id
-            var userId = _userManager.GetUserId(User);
-
-            var boardEvent = _gameService.MovePlayer(userId, gameId);
+            var boardEvent = _gameService.MovePlayer(gameId);
             return Ok(boardEvent);
         }
+
         [HttpPost("HandleBoardEventResponse")]
         public IActionResult HandleBoardEventResponse([FromBody] BoardEventResponse boardEventResponse)
         {
+            //Get the user's id
+            var userId = _userManager.GetUserId(User);
+            if (userId == null)
+            {
+                return BadRequest("User not found");
+            }
+
             if (boardEventResponse.IsAcknowledged)
             {
                 switch (boardEventResponse.BoardEvent)
@@ -78,12 +84,14 @@ namespace CustomMonopoly.Server.Controllers
                         }
                     case HomeNoActionEvent:
                         return Ok();
-                    case RentRequiredEvent rentRequiredEvent:
+                    case RentRequiredEvent rentRequiredEvent:   
                         _gameEventHandlingService.HandleRentRequiredEvent(rentRequiredEvent);
                         return Ok("Rent Successfully Paid");
                     //TODO: Handle to Jail event, card events etc.
 
                 }
+
+                _gameService.UpdateToNextPlayerTurn(boardEventResponse.GameId);
                 return Ok("Event Response Handled Successfully");
 
             }
