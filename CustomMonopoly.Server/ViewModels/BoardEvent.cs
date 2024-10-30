@@ -1,4 +1,6 @@
-﻿namespace CustomMonopoly.Server.ViewModels
+﻿using CustomMonopoly.Server.Models.DTOs;
+
+namespace CustomMonopoly.Server.ViewModels
 {
     public abstract class BoardEvent
     {

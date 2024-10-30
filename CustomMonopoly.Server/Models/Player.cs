@@ -14,11 +14,12 @@ namespace CustomMonopoly.Server.Models
         public bool IsPlayersTurn { get; set; }
         public int TurnOrder { get; set; }
         public int GameId { get; set; }
-        public string UserId { get; set; } 
+        public string UserId { get; set; }
         /// <summary>
         /// Color of the players puck
         /// </summary>
-        public string Color = "Blue";
+        public string Color { get; set; } = "Blue";
+
         [ForeignKey("GameId")]
         public Game? Game { get; set; }
 

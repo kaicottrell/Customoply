@@ -26,15 +26,18 @@ namespace CustomMonopoly.Server.Controllers
             _gameEventHandlingService = gameEventHandlingService;
         }
         [HttpPost("StartAndGetGame")]
-        public IActionResult StartAndGetGame()
+        public IActionResult StartAndGetGame([FromBody] StartGameRequestVM startGameRequestVM)
         {
             //Get the user's id
             var userId = _userManager.GetUserId(User);
+            if (userId == null)
+            {
+                return BadRequest("User not found");
+            }
             //Create new game
             var newGame = _gameService.StartGame();
             //Create a new player for the game
-            var player = new Player(1500, null, 0, newGame.Id, userId, "Blue", true, 0);
-            var players = _gameService.ConfigurePlayersForGame(player);
+            var players = _gameService.ConfigurePlayersForGame(newGame, userId, startGameRequestVM.NumberOfPlayers);
             newGame.Players = players;
 
             return Ok(newGame.ToGameDTO());
@@ -49,13 +52,14 @@ namespace CustomMonopoly.Server.Controllers
                 return BadRequest("User not found");
             }
             var game = _gameService.GetExistingGame(userId);
-            return Ok(game?.ToGameDTO());
+            var gameDTO = game?.ToGameDTO();
+            return gameDTO != null ? Ok(gameDTO) : NoContent();
         }
         [HttpPost("MovePlayer")]
-        public IActionResult MovePlayer(int gameId)
+        public IActionResult MovePlayer([FromQuery] int gameId)
         {
-            var boardEvent = _gameService.MovePlayer(gameId);
-            return Ok(boardEvent);
+            var gameWithEventDTO = _gameService.MovePlayer(gameId);
+            return Ok(gameWithEventDTO);
         }
 
         [HttpPost("HandleBoardEventResponse")]

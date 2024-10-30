@@ -2,10 +2,14 @@ import AuthorizationView from "../auth/AuthorizeView.jsx";
 import SignOutLink from "../auth/SignOutLink.jsx";
 import { useEffect, useState, useMemo } from "react";
 import toast, { Toaster } from 'react-hot-toast';
-
+import StartGameModal from '../components/StartGameModal.jsx';
+import { playerBGColors, playerBorderColors, boardSquareColors, boardSquareSizes, getPlayerBorderColor, getPlayerHoverBGColor } from '../constants/boardConstants.js';
+import CustomModal from '../components/CustomModal.jsx';
 function PlayMonopoly() {
     const [gameDTO, setGameDTO] = useState({});
-
+    const [isStartGameModalOpen, setStartGameModalOpen] = useState(false);
+    const [activePlayer, setActivePlayer] = useState({});
+    //TODO: games should be able to be gathered 
     async function startGame() {
         try {
             // See if existing game exists
@@ -20,24 +24,52 @@ function PlayMonopoly() {
                 throw new Error("Network response was not successful getting the existing game.");
             }
 
-            const data = await response.json();
-
-            if (data && Object.keys(data).length > 0) {
+            if (response.status === 204) {
+                console.log("No response, new game");
+                setStartGameModalOpen(true);
+            } else {
+                const data = await response.json();
+                if (!data || Object.keys(data).length <= 0) {
+                    throw new Error("Game found, but data was empty");
+                }
                 setGameDTO(data);
                 toast.success("Existing game loaded successfully! ");
-            } else {
-                const newGameResponse = await fetch("api/game/StartAndGetGame", { method: "POST" });
-                if (!newGameResponse.ok) {
-                    throw new Error("Network response was not successful when attempting to start a new game");
-                }
-                const newGameData = await newGameResponse.json();
-                console.log(newGameData);
-                setGameDTO(newGameData);
             }
+
         } catch (exception) {
             toast.error("Unexpected error getting the game: " + exception);
         }
     }
+
+    async function createNewGame(numPlayers) {
+        const newGameResponse = await fetch("api/game/StartAndGetGame", {
+            method: "POST",
+            headers: {
+                "content-type": "application/json"
+            },
+            body: JSON.stringify({ numberOfPlayers: numPlayers })
+        });
+        if (!newGameResponse.ok) {
+            throw new Error("Network response was not successful when attempting to start a new game");
+        }
+        const newGameData = await newGameResponse.json();
+        // close the modal
+        setStartGameModalOpen(false);
+        setGameDTO(newGameData);
+    }
+    function updateActivePlayer() {
+        if (!gameDTO.playerList) return;
+        var activePlayer = gameDTO.playerList.find(player => player.isPlayersTurn);
+        if (!activePlayer) {
+            toast.error("Active player not found");
+            return;
+        }
+        setActivePlayer(activePlayer);
+    }
+    useEffect(() => {
+        updateActivePlayer()
+    }, [gameDTO]);
+
 
     useEffect(() => {
         async function fetchData() {
@@ -45,37 +77,6 @@ function PlayMonopoly() {
         }
         fetchData();
     }, []);
-
-    const playerColors = {
-        Blue: "blue-500",
-        Red: "red-500",
-        Green: "green-500",
-        Yellow: "yellow-500"
-    };
-
-    const boardSquareColors = {
-        Yellow: "bg-yellow-300",
-        Blue: "bg-blue-700",
-        Red: "bg-red-600",
-        Green: "bg-green-700",
-        Orange: "bg-orange-400",
-        Brown: "bg-orange-900",
-        Pink: "bg-pink-400",
-        "Light Blue": "bg-blue-200",
-    }
-
-    const boardSquareSizes = {
-        GoToJail: "Big",
-        Jail: "Big",
-        FreeParking: "Big",
-        Go: "Big",
-        BuildableProperty: "Medium",
-        RailroadProperty: "Medium",
-        Chance: "Medium",
-        CommunityChest: "Medium",
-        Utility: "Medium",
-        Tax: "Medium"
-    };
 
 
     const boardSections = useMemo(() => {
@@ -90,7 +91,7 @@ function PlayMonopoly() {
             Section3: gameDTO.boardSquares.slice((squaresPerSide * 2), (squaresPerSide * 3) + 1), //20 - 31 (11 squares)
             Section4: gameDTO.boardSquares.slice(((squaresPerSide * 3) + 1), (squaresPerSide * 4)) //31 - 40 (9 squares)
         };
-    }, [gameDTO.boardSquares]);
+    }, [gameDTO]);
 
     const getGameBoardSquareView = (boardSquare, index) => {
         const boardSquareSize = boardSquareSizes[boardSquare.type];
@@ -109,11 +110,11 @@ function PlayMonopoly() {
                     )
                 }
                 {boardSquare.name}
-                <div className="flex justify-center items-center flex-wrap mt-1">
+                <div className="flex justify-center items-center flex-wrap mt-1 gap-1">
                     {
                         // Player(s) on square
                         playersOnSquare.map((player, index) => {
-                            const playerPuckColor = playerColors[player.color] ? `bg-${playerColors[player.color]}` : "bg-gray-500";
+                            const playerPuckColor = playerBGColors[player.color] ?? "bg-gray-500";
                             return (
                                 <div key={index} className={`rounded-full size-8 ${playerPuckColor} border-1 border-black`}></div>
                             );
@@ -123,28 +124,55 @@ function PlayMonopoly() {
             </div>
         );
     }
+
     const renderBoardSection = (section) => {
         return section && section.map((boardSquare, index) => {
             return getGameBoardSquareView(boardSquare, index);
         });
     }
+    //async?
+    const rollDice = async () => {
+        try {
+            const response = await fetch(`api/game/MovePlayer?gameId=${gameDTO.id}`, {
+                method: "POST",
+                headers: {
+                    "Accept": "application/json"
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error("Network response was not successful when attempting to move the player.");
+            }
+
+            const gameData = await response.json();
+
+            setGameDTO(gameData);
+        } catch (error) {
+            toast.error("Unexpected error moving the player: " + error);
+        }
+    }
+   
+
     return (
         <AuthorizationView>
             <Toaster />
-            <SignOutLink className="absolute top-0 right-0 m-2 " >
+            <SignOutLink className="absolute top-0 right-0 m-2 ">
                 Sign out
             </SignOutLink>
+
+            
             <div className="flex flex-col justify-center items-center">
                 <h1 className="mt-3 border-2 rounded-xl p-4 shadow-xl xl:w-1/3 sm:w-3/4 w-full text-center">
                     Welcome to Monopoly
                 </h1>
-                <div className="flex">
+                <div className="flex gap-2">
                     {gameDTO.playerList && gameDTO.playerList.map((player, index) => {
-                        const playerColorClass = playerColors[player.color] ? `border-${playerColors[player.color]}` : "border-gray-200";
+                        const playerColorClass = playerBorderColors[player.color] ?? "border-gray-200";
+                        const activePlayerAnimationClass = player.isPlayersTurn ? 'animate-bounce' : '';
                         const playerNum = index + 1;
                         const playerCash = player.balance;
                         return (
-                            <div key={player.Id} className={`border-2 ${playerColorClass} text-black p-3 shadow-xl rounded-xl text-center font-bold`}>
+                            <div key={player.Id} className={`border-2 ${playerColorClass} ${activePlayerAnimationClass}  text-black p-3 shadow-xl rounded-xl text-center font-bold mt-5`}>
                                 <div className="text-md">
                                     Player: {playerNum}
                                 </div>
@@ -155,9 +183,16 @@ function PlayMonopoly() {
                         );
                     })}
                 </div>
+                {
+                    activePlayer && (
+                        <button onClick={ rollDice } className={`border-2 ${getPlayerBorderColor(activePlayer.color)} mt-3 relative p-2 rounded-md hover:text-white ${getPlayerHoverBGColor(activePlayer.color)}`} type="button">
+                            <span className="animate-ping absolute inline-flex size-2 rounded-full bg-sky-400 opacity-75 right-0 top-0"></span>
+                            Roll Dice
+                        </button>
+                    )
+                }
               
-
-                { /*Show Gameboard */}
+               
                 <div className="flex flex-col m-5">
                     {/* Section 3 */}
                     <div className="flex flex-row">
@@ -179,6 +214,19 @@ function PlayMonopoly() {
                 </div>
             </div>
 
+            <StartGameModal isOpen={isStartGameModalOpen} onStartGame={(numPlayers) => createNewGame(numPlayers)} />
+
+            {
+                //Create handle board event functions to handle the different types of events such as: 
+                // - No Action, Chance, CommunityCard (Ok Button)
+                // - Choosing options from PropertyEvent 
+                gameDTO.currentBoardEvent && (
+                    <CustomModal>
+                        <h3>{gameDTO.currentBoardEvent.description}</h3>
+
+                    </CustomModal>
+                )
+            }
         </AuthorizationView>
     );
 }

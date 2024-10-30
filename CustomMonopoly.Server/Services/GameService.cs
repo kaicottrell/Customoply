@@ -7,6 +7,8 @@ using CustomMonopoly.Server.Exceptions;
 using static CustomMonopoly.Server.ViewModels.AvailableForPurchaseEvent;
 using Microsoft.EntityFrameworkCore;
 using CustomMonopoly.Server.Models.DTOs;
+using CustomMonopoly.Server.Config;
+using CustomMonopoly.Server.Extensions;
 
 namespace CustomMonopoly.Server.Services
 {
@@ -28,13 +30,9 @@ namespace CustomMonopoly.Server.Services
         /// <param name="gameId">The game being affected</param>
         /// <returns>A BoardEvent such as <see cref="AvailableForPurchaseEvent" /> or <see cref="GainMoneyCardEvent" /></returns>
         //TODO: Return a tuple of the GoEvent? find a way to display this on the frontend 
-        public BoardEvent MovePlayer( int gameId)
+        public GameDTO MovePlayer(int gameId)
         {
-            var game = _db.Games
-                .Include(g=> g.Board)
-                .ThenInclude(b => b.BoardBoardSquares)
-                .ThenInclude(bbs => bbs.BoardSquare)
-                .First(g => g.Id == gameId);
+            var game = GetExistingGame(gameId);
 
             var boardSquareList = Game.GetGameBoardSquareList(game);
             //Get the current player 
@@ -57,6 +55,7 @@ namespace CustomMonopoly.Server.Services
             // We need to be able to handle a wide variety of events,  such as returning views for a card draw,
             // or property options such as pay rent or buy if available, or go to jail or free parking
             BoardEvent boardEvent = null;
+
             switch (boardSquare)
             {
                 case PropertySquare propertySquare:
@@ -95,14 +94,15 @@ namespace CustomMonopoly.Server.Services
                 //    // Handle community chest square logic here
                 //    break;
 
-                case FreeParkingSquare freeParkingSquare:
-                    break;
-                case GoToJailSquare goToJailSquare:
-                    break;
-                case JailSquare jailSquare:
-                    break;
+                //case FreeParkingSquare freeParkingSquare:
+                //    break;
+                //case GoToJailSquare goToJailSquare:
+                //    break;
+                //case JailSquare jailSquare:
+                //    break;
                 default:
                     // Handle default case if needed
+                    boardEvent = new HomeNoActionEvent();
                     break;
             }
             if (boardEvent is IPlayerEvent playerEvent)
@@ -110,7 +110,16 @@ namespace CustomMonopoly.Server.Services
                 playerEvent.Player = player;
             }
 
-            return boardEvent ?? new HomeNoActionEvent();
+            game = GetExistingGame(gameId);
+
+            if (game == null)
+            {
+                throw new Exception("Game no longer exists");
+            }
+            var gameDTO = game.ToGameDTO();
+            gameDTO.CurrentBoardEvent = boardEvent;
+            
+            return gameDTO;
         }
         /// <summary>
         /// Saves the game, Sets the board
@@ -119,7 +128,7 @@ namespace CustomMonopoly.Server.Services
         /// <returns>the game id of the newly created game</returns>
         public Game StartGame()
         {
-            Game game = new Game(); 
+            Game game = new Game();
             var gameBoard = _db.Boards
                 .Include(b => b.BoardBoardSquares)
                     .ThenInclude(bbs => bbs.BoardSquare)
@@ -130,11 +139,26 @@ namespace CustomMonopoly.Server.Services
             _db.SaveChanges();
             return game;
         }
-        public List<Player> ConfigurePlayersForGame(Player player)
+        public List<Player> ConfigurePlayersForGame(Game newGame, string userId, int numPlayers)
         {
-            _db.Add(player);
+            if (numPlayers > PlayerConfig.PlayerColors.Length)
+            {
+                throw new Exception("Unsupported amount of players when configuring the game.");
+            }
+
+            var firstPlayer = new Player(1500, null, 0, newGame.Id, userId, PlayerConfig.PlayerColors[0], true, 0);
+            List<Player> playerList = new List<Player>() { firstPlayer };
+            _db.Add(firstPlayer);
+            for (int i = 1; i < numPlayers; i++)
+            {
+                //Add any additional players
+                var additionalPlayer = new Player(1500, null, 0, newGame.Id, userId, PlayerConfig.PlayerColors[i], false, 0);
+                playerList.Add(additionalPlayer);
+                _db.Add(additionalPlayer);
+            }
+
             _db.SaveChanges();
-            return _db.Players.Where(p => p.GameId == player.GameId).ToList();  
+            return playerList;
         }
         public Game? GetExistingGame(string userId)
         {
@@ -301,7 +325,7 @@ namespace CustomMonopoly.Server.Services
         //public List<BoardSquare> GetGameBoard()
         //{
         //}
-     
+
 
     }
 }
