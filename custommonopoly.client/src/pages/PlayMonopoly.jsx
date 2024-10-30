@@ -47,10 +47,10 @@ function PlayMonopoly() {
     }, []);
 
     const playerColors = {
-        Blue: "bg-blue-500",
-        Red: "bg-red-500",
-        Green: "bg-green-500",
-        Yellow: "bg-yellow-500"
+        Blue: "blue-500",
+        Red: "red-500",
+        Green: "green-500",
+        Yellow: "yellow-500"
     };
 
     const boardSquareColors = {
@@ -113,7 +113,7 @@ function PlayMonopoly() {
                     {
                         // Player(s) on square
                         playersOnSquare.map((player, index) => {
-                            const playerPuckColor = playerColors[player.color] || "bg-gray-500";
+                            const playerPuckColor = playerColors[player.color] ? `bg-${playerColors[player.color]}` : "bg-gray-500";
                             return (
                                 <div key={index} className={`rounded-full size-8 ${playerPuckColor} border-1 border-black`}></div>
                             );
@@ -138,18 +138,24 @@ function PlayMonopoly() {
                 <h1 className="mt-3 border-2 rounded-xl p-4 shadow-xl xl:w-1/3 sm:w-3/4 w-full text-center">
                     Welcome to Monopoly
                 </h1>
-                {/*<pre className="mt-3 border-2 inline-block rounded-xl p-4 shadow-xl bg-gray-100 text-black">*/}
-                {/*    {JSON.stringify(gameDTO, null, 2)}*/}
-                {/*</pre>*/}
-                {gameDTO.playerList && gameDTO.playerList.map((player, index) => {
-                    const playerColorClass = playerColors[player.color] || "bg-gray-200";
-                    const playerNum = index + 1;
-                    return (
-                        <h3 key={player.Id} className={`${playerColorClass} text-black p-3 shadow-xl rounded-xl`}>
-                            Player {playerNum}
-                        </h3>
-                    );
-                })}
+                <div className="flex">
+                    {gameDTO.playerList && gameDTO.playerList.map((player, index) => {
+                        const playerColorClass = playerColors[player.color] ? `border-${playerColors[player.color]}` : "border-gray-200";
+                        const playerNum = index + 1;
+                        const playerCash = player.balance;
+                        return (
+                            <div key={player.Id} className={`border-2 ${playerColorClass} text-black p-3 shadow-xl rounded-xl text-center font-bold`}>
+                                <div className="text-md">
+                                    Player: {playerNum}
+                                </div>
+                                <div className="text-sm">
+                                    ${playerCash}
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+              
 
                 { /*Show Gameboard */}
                 <div className="flex flex-col m-5">
