@@ -141,18 +141,97 @@ function PlayMonopoly() {
             });
 
             if (!response.ok) {
-                throw new Error("Network response was not successful when attempting to move the player.");
+                const errorText = await response.text();
+                throw new Error(`Network response was not successful when attempting to move the player. Status: ${response.status}, StatusText: ${response.statusText}, Error: ${errorText}`);
             }
 
             const gameData = await response.json();
-
+            console.log(gameData);
             setGameDTO(gameData);
         } catch (error) {
-            toast.error("Unexpected error moving the player: " + error);
+            console.error("Unexpected error moving the player: " + error);
+            toast.error("Unexpected error moving the player: ");
         }
     }
-   
+    function getEventView() {
+        const event = gameDTO.currentBoardEvent;
+        if (!event) {
+            return;
+        }
 
+        const propertyEventChoices = gameDTO.currentBoardEvent.propertyOptions;
+
+        return (
+            <div>
+                <h3>{event.description}</h3>
+                event: 
+                <div>
+                    {Object.entries(event).map(([key, value]) => (
+                        <div key={key}>
+                            <strong>{key}:</strong> {JSON.stringify(value)}
+                        </div>
+                    ))}
+                </div>
+                {
+                    propertyEventChoices ? (
+                        <div>
+                            <div> Price: {event.purchasePrice } </div>
+                            {propertyEventChoices.map((option, index) => (
+                                <button key={index} className="border-2 border-indigo-500 hover:text-md" type="button" onClick={() => handleEventResponse(option)}>
+                                    {option}
+                                </button>
+                            ))}
+                        </div>
+                    ) : (
+                         <button className="border-2 border-indigo-500 hover:text-md" type="button" onClick={() => handleEventResponse()}>OK</button>
+                    )
+                }
+            </div>
+        );
+    }
+    function handleEventResponse(option = null) {
+        const event = gameDTO.currentBoardEvent;
+        const acknowledgementResponse = {
+            GameId: gameDTO.id,
+            BoardEvent: event
+        };
+
+        if (event.EventType === "AvailableForPurchase" && option) {
+            const availableForPurchaseEventResponse = {
+                ...toAPIBody,
+                PropertyOptionType: option
+            };
+            sendEventResponse(availableForPurchaseEventResponse);
+        } else {
+            sendEventResponse(acknowledgementResponse);
+        }
+    }
+
+    function sendEventResponse(body) {
+        fetch("api/game/HandleBoardEventResponse", {
+            method: "POST",
+            headers: {
+                "content-type": "application/json"
+            },
+       //     body: JSON.stringify(body)
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Network response was not successful when handling the board event response.");
+                }
+                return response.json();
+            })
+            .then(data => {
+                setGameDTO(data);
+                toast.success("Event handled successfully!");
+            })
+            .catch(error => {
+                toast.error("Unexpected error handling the event: " + error);
+            });
+    }
+
+
+    
     return (
         <AuthorizationView>
             <Toaster />
@@ -160,7 +239,7 @@ function PlayMonopoly() {
                 Sign out
             </SignOutLink>
 
-            
+
             <div className="flex flex-col justify-center items-center">
                 <h1 className="mt-3 border-2 rounded-xl p-4 shadow-xl xl:w-1/3 sm:w-3/4 w-full text-center">
                     Welcome to Monopoly
@@ -172,7 +251,7 @@ function PlayMonopoly() {
                         const playerNum = index + 1;
                         const playerCash = player.balance;
                         return (
-                            <div key={player.Id} className={`border-2 ${playerColorClass} ${activePlayerAnimationClass}  text-black p-3 shadow-xl rounded-xl text-center font-bold mt-5`}>
+                            <div key={player.Id} className={`border-2 ${playerColorClass} ${activePlayerAnimationClass} text-black p-3 shadow-xl rounded-xl text-center font-bold mt-5`}>
                                 <div className="text-md">
                                     Player: {playerNum}
                                 </div>
@@ -185,14 +264,14 @@ function PlayMonopoly() {
                 </div>
                 {
                     activePlayer && (
-                        <button onClick={ rollDice } className={`border-2 ${getPlayerBorderColor(activePlayer.color)} mt-3 relative p-2 rounded-md hover:text-white ${getPlayerHoverBGColor(activePlayer.color)}`} type="button">
+                        <button onClick={rollDice} className={`border-2 ${getPlayerBorderColor(activePlayer.color)} mt-3 relative p-2 rounded-md hover:text-white ${getPlayerHoverBGColor(activePlayer.color)}`} type="button">
                             <span className="animate-ping absolute inline-flex size-2 rounded-full bg-sky-400 opacity-75 right-0 top-0"></span>
                             Roll Dice
                         </button>
                     )
                 }
-              
-               
+
+
                 <div className="flex flex-col m-5">
                     {/* Section 3 */}
                     <div className="flex flex-row">
@@ -222,8 +301,7 @@ function PlayMonopoly() {
                 // - Choosing options from PropertyEvent 
                 gameDTO.currentBoardEvent && (
                     <CustomModal>
-                        <h3>{gameDTO.currentBoardEvent.description}</h3>
-
+                        {getEventView()}
                     </CustomModal>
                 )
             }

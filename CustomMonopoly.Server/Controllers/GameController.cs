@@ -72,37 +72,37 @@ namespace CustomMonopoly.Server.Controllers
                 return BadRequest("User not found");
             }
 
-            if (boardEventResponse.IsAcknowledged)
+            switch (boardEventResponse.BoardEvent)
             {
-                switch (boardEventResponse.BoardEvent)
-                {
-                    case AvailableForPurchaseEvent availableForPurchaseEvent:
-                        if (boardEventResponse is AvailableForPurchaseEventResponse propertyPurchaseResponse)
-                        {
-                            _gameEventHandlingService.HandleAvailableForPurchaseEvent(availableForPurchaseEvent, propertyPurchaseResponse.PropertyOptionType);
-                            return Ok();
-                        }
-                        else
-                        {
-                            return BadRequest("Event Response Mismatch");
-                        }
-                    case HomeNoActionEvent:
+                case AvailableForPurchaseEvent availableForPurchaseEvent:
+                    if (boardEventResponse is AvailableForPurchaseEventResponse propertyPurchaseResponse)
+                    {
+                        _gameEventHandlingService.HandleAvailableForPurchaseEvent(availableForPurchaseEvent, propertyPurchaseResponse.PropertyOptionType);
                         return Ok();
-                    case RentRequiredEvent rentRequiredEvent:   
-                        _gameEventHandlingService.HandleRentRequiredEvent(rentRequiredEvent);
-                        return Ok("Rent Successfully Paid");
+                    }
+                    else
+                    {
+                        return BadRequest("Event Response Mismatch");
+                    }
+                case HomeNoActionEvent:
+                    return Ok();
+                case RentRequiredEvent rentRequiredEvent:
+                    _gameEventHandlingService.HandleRentRequiredEvent(rentRequiredEvent);
+                    return Ok("Rent Successfully Paid");
                     //TODO: Handle to Jail event, card events etc.
 
-                }
-
-                _gameService.UpdateToNextPlayerTurn(boardEventResponse.GameId);
-                return Ok("Event Response Handled Successfully");
-
             }
-            //TODO: Switch player turn
-            return BadRequest("Board Event not successfully acknowledged");
+
+            _gameService.UpdateToNextPlayerTurn(boardEventResponse.GameId);
+            var game = _gameService.GetExistingGame(userId);
+            if(game == null)
+            {
+                return BadRequest("Game no longer found");
+            }
+
+            return Ok(game.ToGameDTO());
         }
-  
+
         //[HttpGet("GetGameBoard")]
         //public IActionResult GetGameBoard()
         //{

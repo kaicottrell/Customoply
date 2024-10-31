@@ -29,6 +29,7 @@ namespace CustomMonopoly.Server.ViewModels
         public AvailableForPurchaseEvent(int purchasePrice, List<PropertyOptionType> propertyOptions)
         {
             PropertyOptions = propertyOptions;
+            EventType = "AvailableForPurchase";
             PurchasePrice = purchasePrice;
             if (propertyOptions.Contains(PropertyOptionType.Purchase))
             {
@@ -53,6 +54,7 @@ namespace CustomMonopoly.Server.ViewModels
         public HomeNoActionEvent()
         {
             Description = "Home Sweet Home" ;
+            EventType = "HomeNoAction";
         }
     }
 
@@ -65,6 +67,7 @@ namespace CustomMonopoly.Server.ViewModels
             RentAmount = rentAmount;
             Description = payPlayerMessage;
             PlayerColor = playerColor;
+            EventType = "RentRequired";
         }
 
     }
