@@ -1,5 +1,5 @@
-﻿using CustomMonopoly.Server.Models.DTOs;
-using CustomMonopoly.Server.Models;
+﻿using CustomMonopoly.Server.Models;
+using CustomMonopoly.Server.ViewModels.DTOs;
 
 namespace CustomMonopoly.Server.Extensions
 {
@@ -17,5 +17,10 @@ namespace CustomMonopoly.Server.Extensions
                 BoardName = game.Board.Name
             };
         }
+        public static PlayerDTO ToPlayerDTO(this Player player)
+        {
+            return new PlayerDTO(player);
+        }
+
     }
 }

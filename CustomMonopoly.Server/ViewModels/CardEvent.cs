@@ -1,8 +1,9 @@
 ﻿using CustomMonopoly.Server.Models;
+using CustomMonopoly.Server.ViewModels.DTOs;
 
 namespace CustomMonopoly.Server.ViewModels
 {
-    public abstract class CardEvent : BoardEvent, IPlayerEvent
+    public abstract class CardEvent : BoardEventDTO, IPlayerEvent
     {
         public CardType CardType { get; set; }
         public Player Player { get; set; }

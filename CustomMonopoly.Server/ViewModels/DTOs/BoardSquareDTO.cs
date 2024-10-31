@@ -1,10 +1,10 @@
 ﻿using Azure.Identity;
 using CustomMonopoly.Server.Models.BoardSquares;
-namespace CustomMonopoly.Server.Models.DTOs
+namespace CustomMonopoly.Server.ViewModels.DTOs
 {
     public class BoardSquareDTO
     {
-        public string? Color { get; set; } 
+        public string? Color { get; set; }
         public string Name { get; set; }
         public int OrderNumber { get; set; }
         public string Type { get; set; }
@@ -58,5 +58,5 @@ namespace CustomMonopoly.Server.Models.DTOs
         }
 
     }
-   
+
 }

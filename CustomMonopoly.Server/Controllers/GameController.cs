@@ -6,7 +6,8 @@ using System.Security.Claims;
 using CustomMonopoly.Server.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using CustomMonopoly.Server.Extensions;
-using CustomMonopoly.Server.Models.DTOs;
+using CustomMonopoly.Server.Config;
+using CustomMonopoly.Server.ViewModels.DTOs.Responses;
 
 namespace CustomMonopoly.Server.Controllers
 {
@@ -65,42 +66,41 @@ namespace CustomMonopoly.Server.Controllers
         [HttpPost("HandleBoardEventResponse")]
         public IActionResult HandleBoardEventResponse([FromBody] BoardEventResponse boardEventResponse)
         {
-            //Get the user's id
+            // Get the user's id
             var userId = _userManager.GetUserId(User);
             if (userId == null)
             {
                 return BadRequest("User not found");
             }
-
-            switch (boardEventResponse.BoardEvent)
+            try
             {
-                case AvailableForPurchaseEvent availableForPurchaseEvent:
-                    if (boardEventResponse is AvailableForPurchaseEventResponse propertyPurchaseResponse)
-                    {
-                        _gameEventHandlingService.HandleAvailableForPurchaseEvent(availableForPurchaseEvent, propertyPurchaseResponse.PropertyOptionType);
-                        return Ok();
-                    }
-                    else
-                    {
-                        return BadRequest("Event Response Mismatch");
-                    }
-                case HomeNoActionEvent:
-                    return Ok();
-                case RentRequiredEvent rentRequiredEvent:
-                    _gameEventHandlingService.HandleRentRequiredEvent(rentRequiredEvent);
-                    return Ok("Rent Successfully Paid");
-                    //TODO: Handle to Jail event, card events etc.
+                string eventType = boardEventResponse.BoardEvent.EventType;
+
+                // Inline shorthand switch statement
+                Action boardEventAction = eventType switch
+                {
+                    SD.PurchaseOrAuctionPropertyBoardEvent => () => _gameEventHandlingService.HandleAvailableForPurchaseEvent(boardEventResponse.BoardEvent, boardEventResponse.SelectedPropertyOption),
+                    SD.RentRequiredBoardEvent => () => _gameEventHandlingService.HandleRentRequiredEvent(boardEventResponse.BoardEvent),
+                    _ => () => { } // No-op for default case
+                };
+
+                // Execute the action
+                boardEventAction();
+
+                _gameService.UpdateToNextPlayerTurn(boardEventResponse.GameId);
+                var game = _gameService.GetExistingGame(userId);
+                if (game == null)
+                {
+                    return BadRequest("Game no longer found");
+                }
+
+                return Ok(game.ToGameDTO());
 
             }
-
-            _gameService.UpdateToNextPlayerTurn(boardEventResponse.GameId);
-            var game = _gameService.GetExistingGame(userId);
-            if(game == null)
+            catch (Exception ex)
             {
-                return BadRequest("Game no longer found");
+                return BadRequest(ex.Message);
             }
-
-            return Ok(game.ToGameDTO());
         }
 
         //[HttpGet("GetGameBoard")]

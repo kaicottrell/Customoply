@@ -83,7 +83,6 @@ function PlayMonopoly() {
         if (!gameDTO.boardSquares) return {};
 
         const squaresPerSide = gameDTO.boardSquares.length / 4;
-        console.log("Squares per side:", squaresPerSide); // Log the value of squaresPerSide
 
         return {
             Section1: gameDTO.boardSquares.slice(0, squaresPerSide + 1), // 0 - 11 (11 squares)
@@ -146,7 +145,6 @@ function PlayMonopoly() {
             }
 
             const gameData = await response.json();
-            console.log(gameData);
             setGameDTO(gameData);
         } catch (error) {
             console.error("Unexpected error moving the player: " + error);
@@ -164,56 +162,71 @@ function PlayMonopoly() {
         return (
             <div>
                 <h3>{event.description}</h3>
-                event: 
-                <div>
-                    {Object.entries(event).map(([key, value]) => (
-                        <div key={key}>
-                            <strong>{key}:</strong> {JSON.stringify(value)}
-                        </div>
-                    ))}
-                </div>
+                {/*event: */}
+                {/*<div>*/}
+                {/*    {Object.entries(event).map(([key, value]) => (*/}
+                {/*        <div key={key}>*/}
+                {/*            <strong>{key}:</strong> {JSON.stringify(value)}*/}
+                {/*        </div>*/}
+                {/*    ))}*/}
+                {/*</div>*/}
                 {
                     propertyEventChoices ? (
                         <div>
-                            <div> Price: {event.purchasePrice } </div>
-                            {propertyEventChoices.map((option, index) => (
-                                <button key={index} className="border-2 border-indigo-500 hover:text-md" type="button" onClick={() => handleEventResponse(option)}>
-                                    {option}
-                                </button>
-                            ))}
+                            <div> Price: {event.purchasePrice} </div>
+                            <div className="flex justify-center gap-3">
+                                {propertyEventChoices.map((option, index) => (
+                                    <div>
+                                        <button key={`choice-${index}`} className="border-2 border-indigo-500 hover:border-2 hover:border-green-700 hover:bg-green-200" type="button" onClick={(e) => handleEventResponse(e, option)}>
+                                            {option}
+                                        </button>
+
+                                    </div>
+                                  
+                                ))}
+                            </div>
+
                         </div>
                     ) : (
-                         <button className="border-2 border-indigo-500 hover:text-md" type="button" onClick={() => handleEventResponse()}>OK</button>
+                        <div>
+                            <button className="border-2 border-indigo-500 hover:border-2 hover:border-green-700 hover:bg-green-200" type="button" onClick={(e) => handleEventResponse(e)}>OK</button>
+                        </div>
                     )
                 }
             </div>
         );
     }
-    function handleEventResponse(option = null) {
+    function handleEventResponse(e, option = null) {
+        e.preventDefault();
         const event = gameDTO.currentBoardEvent;
-        const acknowledgementResponse = {
-            GameId: gameDTO.id,
-            BoardEvent: event
-        };
 
-        if (event.EventType === "AvailableForPurchase" && option) {
+        if (option) {
             const availableForPurchaseEventResponse = {
-                ...toAPIBody,
-                PropertyOptionType: option
+                GameId: gameDTO.id,
+                BoardEvent: event,
+                SelectedPropertyOption: 'Auction',
             };
+            console.log("available for purchase" + availableForPurchaseEventResponse);
+            console.log("Option: " + option);
             sendEventResponse(availableForPurchaseEventResponse);
         } else {
+            const acknowledgementResponse = {
+                GameId: gameDTO.id,
+                BoardEvent: event
+            };
+            console.log("acknowledge" + acknowledgementResponse);
             sendEventResponse(acknowledgementResponse);
         }
     }
 
-    function sendEventResponse(body) {
+    function sendEventResponse(eventResponse) {
+        console.log(eventResponse);
         fetch("api/game/HandleBoardEventResponse", {
             method: "POST",
             headers: {
                 "content-type": "application/json"
             },
-       //     body: JSON.stringify(body)
+            body: JSON.stringify(eventResponse)
         })
             .then(response => {
                 if (!response.ok) {
@@ -231,12 +244,12 @@ function PlayMonopoly() {
     }
 
 
-    
+
     return (
         <AuthorizationView>
             <Toaster />
             <SignOutLink className="absolute top-0 right-0 m-2 ">
-                Sign out
+                <p>Sign out </p>
             </SignOutLink>
 
 

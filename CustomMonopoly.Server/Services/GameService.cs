@@ -4,11 +4,10 @@ using CustomMonopoly.Server.Models.BoardSquares;
 using CustomMonopoly.Server.Data;
 using CustomMonopoly.Server.ViewModels;
 using CustomMonopoly.Server.Exceptions;
-using static CustomMonopoly.Server.ViewModels.AvailableForPurchaseEvent;
 using Microsoft.EntityFrameworkCore;
-using CustomMonopoly.Server.Models.DTOs;
 using CustomMonopoly.Server.Config;
 using CustomMonopoly.Server.Extensions;
+using CustomMonopoly.Server.ViewModels.DTOs;
 
 namespace CustomMonopoly.Server.Services
 {
@@ -42,7 +41,8 @@ namespace CustomMonopoly.Server.Services
             int oldPlayerPosition = player.CurrentPostion;
             int newPlayerPosition = ((player.CurrentPostion + diceRoll) % boardSquareList.Count());
             //Lapped the board (reset)
-            if (oldPlayerPosition + diceRoll > boardSquareList.Count())
+            bool passedGo = oldPlayerPosition + diceRoll > boardSquareList.Count();
+            if (passedGo)
             {
                 player.Balance += 200;
             }
@@ -54,35 +54,58 @@ namespace CustomMonopoly.Server.Services
             BoardSquare boardSquare = boardSquareList[player.CurrentPostion];
             // We need to be able to handle a wide variety of events,  such as returning views for a card draw,
             // or property options such as pay rent or buy if available, or go to jail or free parking
-            BoardEvent boardEvent = null;
+            BoardEventDTO boardEventDTO = new BoardEventDTO();
 
             switch (boardSquare)
             {
                 case PropertySquare propertySquare:
                     // See if PlayerProperty exists
-                    var playerProperty = _db.PlayerProperties.Where(pp => pp.PlayerId == player.Id && pp.PropertySquareId == boardSquare.Id).FirstOrDefault();
+                    var playerProperty = _db.PlayerProperties.Where(pp => pp.Player.GameId == gameId && pp.PropertySquareId == boardSquare.Id)
+                        .Include(pp => pp.Player)
+                        .FirstOrDefault();
+
                     // Based on if the property is owned we return an event
                     if (playerProperty == null)
                     {
                         //Determine if player has enough cash
-                        List<PropertyOptionType> propertyOptions = new List<PropertyOptionType>() { PropertyOptionType.Auction };
+                        List<string> propertyOptions = new List<string>() { SD.Auction };
                         if (player.Balance > propertySquare.Price)
                         {
-                            propertyOptions.Add(PropertyOptionType.Purchase);
+                            propertyOptions.Add(SD.Purchase);
                         }
                         // return the available for purchase event
-                        boardEvent = new AvailableForPurchaseEvent(propertySquare.Price, propertyOptions);
+                        boardEventDTO = new BoardEventDTO { 
+                            PurchasePrice = propertySquare.Price,
+                            PropertyOptions = propertyOptions,
+                            Description = "Buy or Purchase",
+                            EventType = SD.PurchaseOrAuctionPropertyBoardEvent,
+                            PropertyDTO = propertySquare.ToPropertyDTO(),
+                            Player = player.ToPlayerDTO(),
+                        };
                     }
                     // Owned by the player who landed on the property square
                     else if (playerProperty.PlayerId == player.Id)
                     {
-                        boardEvent = new HomeNoActionEvent();
+                        boardEventDTO = new BoardEventDTO
+                        {
+                            Description = "Home Sweet Home",
+                            EventType = SD.HomeNoActionBoardEvent
+                        };
                     }
                     //Owned by another player -- pay rent
                     else
                     {
                         int rent = DetermineRent(playerProperty, propertySquare, diceRoll);
-                        boardEvent = new RentRequiredEvent(rent, $"Pay {player.Color} Player ${rent}", player.Color);
+                        var toPlayer = playerProperty.Player;
+                        boardEventDTO = new BoardEventDTO
+                        {
+                            Description = $"Pay {toPlayer.Color} Player ${rent} for {propertySquare.Name}",
+                            EventType = SD.HomeNoActionBoardEvent,
+                            RentAmount = rent,
+                            Player = player.ToPlayerDTO(),
+                            ToPlayer = toPlayer.ToPlayerDTO()
+
+                        };
                     }
                     break;
                 //TODO: Implement the Card Service to handle drawing a random chance or community card 
@@ -101,15 +124,15 @@ namespace CustomMonopoly.Server.Services
                 //case JailSquare jailSquare:
                 //    break;
                 default:
-                    // Handle default case if needed
-                    boardEvent = new HomeNoActionEvent();
+                    boardEventDTO = new BoardEventDTO
+                    {
+                        Description = "Home Sweet Home",
+                        EventType = SD.HomeNoActionBoardEvent
+                    };
                     break;
             }
-            if (boardEvent is IPlayerEvent playerEvent)
-            {
-                playerEvent.Player = player;
-            }
 
+            boardEventDTO.PlayerPassedGo = passedGo;
             game = GetExistingGame(gameId);
 
             if (game == null)
@@ -117,7 +140,7 @@ namespace CustomMonopoly.Server.Services
                 throw new Exception("Game no longer exists");
             }
             var gameDTO = game.ToGameDTO();
-            gameDTO.CurrentBoardEvent = boardEvent;
+            gameDTO.CurrentBoardEvent = boardEventDTO;
             
             return gameDTO;
         }
@@ -152,7 +175,7 @@ namespace CustomMonopoly.Server.Services
             for (int i = 1; i < numPlayers; i++)
             {
                 //Add any additional players
-                var additionalPlayer = new Player(1500, null, 0, newGame.Id, userId, PlayerConfig.PlayerColors[i], false, 0);
+                var additionalPlayer = new Player(1500, null, 0, newGame.Id, userId, PlayerConfig.PlayerColors[i], false, i);
                 playerList.Add(additionalPlayer);
                 _db.Add(additionalPlayer);
             }
@@ -259,6 +282,7 @@ namespace CustomMonopoly.Server.Services
 
             _db.Update(currentPlayer);
             _db.Update(nextPlayer);
+            _db.SaveChanges();
         }
         private Player GetCurrentPlayer(int gameId)
         {
