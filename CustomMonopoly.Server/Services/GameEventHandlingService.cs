@@ -13,7 +13,7 @@ namespace CustomMonopoly.Server.Services
         {
             _db = db;
         }
-        public PlayerUpdateVM HandleAvailableForPurchaseEvent(BoardEventDTO e, string? option)
+        public void HandleAvailableForPurchaseEvent(BoardEventDTO e, string? option)
         {
             if (e.PropertyDTO == null || e.Player == null)
             {
@@ -41,8 +41,9 @@ namespace CustomMonopoly.Server.Services
                 //    // TODO: Handle Auction
                 //    break;
                 case SD.Purchase:
-                    e.Player.Balance -= e.PropertyDTO.Price;
-                    _db.Update(e.Player);
+                    var player = _db.Players.Where(p => p.Id == e.Player.Id).First();
+                    player.Balance -= e.PropertyDTO.Price;
+                    _db.Update(player);
                     //Assign the property to the player
                     PlayerProperty acquiredProperty = new PlayerProperty
                     {
@@ -51,12 +52,12 @@ namespace CustomMonopoly.Server.Services
                     };
                     _db.Add(acquiredProperty);
                     _db.SaveChanges();
-                   return new PlayerUpdateVM { Balance = e.Player.Balance, PlayerId = e.Player.Id };
+                    break;
                 default:
                     throw new Exception("PropertyOption Not Implemented");
             }
         }
-        public PlayerUpdateVM HandleRentRequiredEvent(BoardEventDTO e)
+        public void HandleRentRequiredEvent(BoardEventDTO e)
         {
             if (e.RentAmount == null)
             {
@@ -67,14 +68,15 @@ namespace CustomMonopoly.Server.Services
                 throw new Exception("Expected Players to be non null, but found null");
             }
             //Take rent from player
-            e.Player.Balance -= e.RentAmount.Value;
+            var fromPlayer = _db.Players.Where(p => p.Id == e.Player.Id).First();
+            fromPlayer.Balance -= e.RentAmount.Value;
             //Give balance to the TOPlayer
-            e.ToPlayer.Balance += e.RentAmount.Value;
-            _db.Update(e.Player);
-            _db.Update(e.ToPlayer);
-            _db.SaveChanges();
-            return new PlayerUpdateVM { PlayerId = e.Player.Id, Balance = e.Player.Balance};
+            var toPlayer = _db.Players.Where(p => p.Id == e.ToPlayer.Id).First();
+            toPlayer.Balance += e.RentAmount.Value;
 
+            _db.Update(fromPlayer);
+            _db.Update(toPlayer);
+            _db.SaveChanges();
             //TODO: Handle Bankruptcy
         }
 

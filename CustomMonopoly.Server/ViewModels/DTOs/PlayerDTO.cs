@@ -10,6 +10,8 @@ namespace CustomMonopoly.Server.ViewModels.DTOs
         public int CurrentPosition { get; set; }
         public string Color { get; set; }
         public bool IsPlayersTurn { get; set; }
+        public int TurnsInJail { get; set; }
+        public PlayerDTO() { }
         public PlayerDTO(Player player)
         {
             Id = player.Id;

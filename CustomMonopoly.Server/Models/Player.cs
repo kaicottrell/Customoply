@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using CustomMonopoly.Server.Models.BoardSquares;
+using CustomMonopoly.Server.ViewModels.DTOs;
 
 namespace CustomMonopoly.Server.Models
 {
@@ -38,6 +39,7 @@ namespace CustomMonopoly.Server.Models
             IsPlayersTurn = isPlayersTurn;
             TurnOrder = turnOrder;
         }
+       
         public int RollTwoDice()
         {
             Random rnd = new Random();

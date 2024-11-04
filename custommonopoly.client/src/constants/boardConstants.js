@@ -52,3 +52,19 @@ export const getPlayerBorderColor = (color) => {
 export const getPlayerHoverBGColor = (color) => {
     return playerHoverBGColors[color] ?? "hover:bg-gray-500";
 }
+export const boardSquareStructure = {
+    TOP: "flex-col-reverse justify-start",
+    RIGHT: "flex-row justify-start",
+    BOTTOM: "flex-col justify-start",
+    LEFT: "flex-row-reverse justify-start",
+    BOTTOM_LEFT_CORNER: "flex-col justify-center",
+    BOTTOM_RIGHT_CORNER: "flex-col justify-center ",
+    TOP_RIGHT_CORNER: "flex-col justify-center ",
+    TOP_LEFT_CORNER: "flex-col justify-center"
+}
+export const boardContentOrientation = {
+    BOTTOM_LEFT_CORNER: "rotate-45",
+    BOTTOM_RIGHT_CORNER: "rotate-315",
+    TOP_RIGHT_CORNER: "rotate-225",
+    TOP_LEFT_CORNER: "rotate-135"
+}

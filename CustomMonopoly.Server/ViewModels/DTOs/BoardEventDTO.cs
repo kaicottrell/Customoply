@@ -29,7 +29,10 @@ namespace CustomMonopoly.Server.ViewModels.DTOs
         //RentRequired:
         public int? RentAmount { get; set; }
         public PlayerDTO? ToPlayer { get; set; }
-
+        public BoardEventDTO()
+        {
+            
+        }
     }
   
 }

@@ -13,5 +13,9 @@
         public int RentThreeHouse { get; set; }
         public int RentFourHouse { get; set; }
         public int RentHotel { get; set; }
+        public PropertyDTO()
+        {
+            
+        }
     }
 }

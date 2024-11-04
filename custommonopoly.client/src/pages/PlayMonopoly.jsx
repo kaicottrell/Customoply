@@ -3,13 +3,25 @@ import SignOutLink from "../auth/SignOutLink.jsx";
 import { useEffect, useState, useMemo } from "react";
 import toast, { Toaster } from 'react-hot-toast';
 import StartGameModal from '../components/StartGameModal.jsx';
-import { playerBGColors, playerBorderColors, boardSquareColors, boardSquareSizes, getPlayerBorderColor, getPlayerHoverBGColor } from '../constants/boardConstants.js';
+import { playerBGColors, playerBorderColors, boardSquareColors, boardSquareSizes, getPlayerBorderColor, getPlayerHoverBGColor, boardSquareStructure, boardContentOrientation } from '../constants/boardConstants.js';
 import CustomModal from '../components/CustomModal.jsx';
 function PlayMonopoly() {
     const [gameDTO, setGameDTO] = useState({});
     const [isStartGameModalOpen, setStartGameModalOpen] = useState(false);
     const [activePlayer, setActivePlayer] = useState({});
-    //TODO: games should be able to be gathered 
+    //TODO: games should be able to be gathered
+
+    const BoardSquareDirections = {
+        TOP: "TOP",
+        RIGHT: "RIGHT",
+        BOTTOM: "BOTTOM",
+        LEFT: "LEFT",
+        BOTTOM_LEFT_CORNER: "BOTTOM_LEFT_CORNER",
+        BOTTOM_RIGHT_CORNER: "BOTTOM_RIGHT_CORNER",
+        TOP_RIGHT_CORNER: "TOP_RIGHT_CORNER",
+        TOP_LEFT_CORNER: "TOP_LEFT_CORNER"
+    };
+
     async function startGame() {
         try {
             // See if existing game exists
@@ -84,31 +96,54 @@ function PlayMonopoly() {
 
         const squaresPerSide = gameDTO.boardSquares.length / 4;
 
-        return {
-            Section1: gameDTO.boardSquares.slice(0, squaresPerSide + 1), // 0 - 11 (11 squares)
-            Section2: gameDTO.boardSquares.slice(squaresPerSide + 1, (squaresPerSide * 2)), // 11-20 (9 squares)
-            Section3: gameDTO.boardSquares.slice((squaresPerSide * 2), (squaresPerSide * 3) + 1), //20 - 31 (11 squares)
-            Section4: gameDTO.boardSquares.slice(((squaresPerSide * 3) + 1), (squaresPerSide * 4)) //31 - 40 (9 squares)
+        const sections = {
+            BottomRightCorner: gameDTO.boardSquares[0], // first corner square
+            BottomSegment: gameDTO.boardSquares.slice(0 + 1, squaresPerSide), // first segment bottom of the board
+            BottomLeftCorner: gameDTO.boardSquares[squaresPerSide], /// second corner square
+            LeftSegment: gameDTO.boardSquares.slice(squaresPerSide + 1, squaresPerSide * 2), //second segment: left side of the board
+            TopLeftCorner: gameDTO.boardSquares[squaresPerSide * 2],
+            TopSegment: gameDTO.boardSquares.slice((squaresPerSide * 2) + 1, squaresPerSide * 3),
+            TopRightCorner: gameDTO.boardSquares[squaresPerSide * 3],
+            RightSegment: gameDTO.boardSquares.slice((squaresPerSide * 3) + 1, squaresPerSide * 4)
         };
+
+        console.log("boardSections:", sections);
+        return sections;
     }, [gameDTO]);
 
-    const getGameBoardSquareView = (boardSquare, index) => {
+
+    const getGameBoardSquareView = (boardSquare, index = null, boardSquareOrientation) => {
         const boardSquareSize = boardSquareSizes[boardSquare.type];
         const classBoardSquareSize = {
-            "Medium": "size-28",
+            "Medium":
+                boardSquareOrientation == BoardSquareDirections.RIGHT || boardSquareOrientation == BoardSquareDirections.LEFT ?
+                    "w-56 h-28" : "h-56 w-28",
             "Big": "size-56"
         }[boardSquareSize] || (() => { throw new Error("Size not implemented"); })();
+
+        
+        const boardSquareflexAlignment = boardSquareStructure[boardSquareOrientation];
+        console.log("orientation " + boardSquareOrientation);
+        console.log("boardSquareflexAlignment " + boardSquareflexAlignment);
+
+        const boardColorDimensions = boardSquareOrientation == BoardSquareDirections.RIGHT || boardSquareOrientation == BoardSquareDirections.LEFT ?
+            "w-5 h-28" : "h-5 w-28";
+        const contentRotation = boardContentOrientation[boardSquareOrientation];
         const boardSquareColorBGClass = boardSquare.color ? boardSquareColors[boardSquare.color] : "";
         const boardSquareOrder = boardSquare.orderNumber;
         const playersOnSquare = gameDTO.playerList.filter((player) => player.currentPosition === boardSquareOrder);
+        
         return (
-            <div key={index} className={`${classBoardSquareSize} border-1 border-black text-center text-xs`}>
+            <div key={index ?? undefined} className={`flex ${classBoardSquareSize} ${boardSquareflexAlignment} border-1 border-black text-center text-xs`}>
                 {
                     boardSquareColorBGClass && (
-                        <div className={`${boardSquareColorBGClass} h-5 w-28`}></div>
+                        <div className={`${boardSquareColorBGClass} ${boardColorDimensions}`}></div>
                     )
                 }
-                {boardSquare.name}
+                <div className={contentRotation ?? '' }>
+                    {boardSquare.name}
+                </div>
+                
                 <div className="flex justify-center items-center flex-wrap mt-1 gap-1">
                     {
                         // Player(s) on square
@@ -124,11 +159,16 @@ function PlayMonopoly() {
         );
     }
 
-    const renderBoardSection = (section) => {
+    const renderBoardSection = (section, orientation) => {
         return section && section.map((boardSquare, index) => {
-            return getGameBoardSquareView(boardSquare, index);
+            return getGameBoardSquareView(boardSquare, index, orientation);
         });
     }
+
+    const renderBoardCorner = (boardSquare, orientation) => {
+        return boardSquare && getGameBoardSquareView(boardSquare, null, orientation);
+    }
+
     //async?
     const rollDice = async () => {
         try {
@@ -162,65 +202,56 @@ function PlayMonopoly() {
         return (
             <div>
                 <h3>{event.description}</h3>
-                {/*event: */}
-                {/*<div>*/}
-                {/*    {Object.entries(event).map(([key, value]) => (*/}
-                {/*        <div key={key}>*/}
-                {/*            <strong>{key}:</strong> {JSON.stringify(value)}*/}
-                {/*        </div>*/}
-                {/*    ))}*/}
-                {/*</div>*/}
                 {
                     propertyEventChoices ? (
-                        <div>
+                        <>
                             <div> Price: {event.purchasePrice} </div>
-                            <div className="flex justify-center gap-3">
-                                {propertyEventChoices.map((option, index) => (
-                                    <div>
-                                        <button key={`choice-${index}`} className="border-2 border-indigo-500 hover:border-2 hover:border-green-700 hover:bg-green-200" type="button" onClick={(e) => handleEventResponse(e, option)}>
+                            <div className="flex justify-center gap-3 ">
+                                {propertyEventChoices.map((option) => (
+                                    <div key={`choice-${option}`}>
+                                        <button type="button" onClick={() => handleEventResponse(option)} className="p-3 border-2 border-indigo-500 hover:border-2 hover:border-green-700 hover:bg-green-200">
                                             {option}
                                         </button>
-
                                     </div>
-                                  
                                 ))}
                             </div>
-
-                        </div>
+                        </>
                     ) : (
-                        <div>
-                            <button className="border-2 border-indigo-500 hover:border-2 hover:border-green-700 hover:bg-green-200" type="button" onClick={(e) => handleEventResponse(e)}>OK</button>
-                        </div>
+                        <button type="button" onClick={() => handleEventResponse()} className="p-3 border-2 border-indigo-500 hover:border-2 hover:border-green-700 hover:bg-green-200">
+                            OK
+                        </button>
                     )
                 }
             </div>
         );
     }
-    function handleEventResponse(e, option = null) {
-        e.preventDefault();
-        const event = gameDTO.currentBoardEvent;
+
+    function handleEventResponse(option) {
+        console.log("Option: " + option);
+
+        const currentBoardEvent = gameDTO.currentBoardEvent;
 
         if (option) {
             const availableForPurchaseEventResponse = {
                 GameId: gameDTO.id,
-                BoardEvent: event,
-                SelectedPropertyOption: 'Auction',
+                BoardEvent: currentBoardEvent,
+                SelectedPropertyOption: option,
             };
             console.log("available for purchase" + availableForPurchaseEventResponse);
-            console.log("Option: " + option);
             sendEventResponse(availableForPurchaseEventResponse);
         } else {
             const acknowledgementResponse = {
                 GameId: gameDTO.id,
-                BoardEvent: event
+                BoardEvent: currentBoardEvent
             };
             console.log("acknowledge" + acknowledgementResponse);
             sendEventResponse(acknowledgementResponse);
         }
     }
 
+
     function sendEventResponse(eventResponse) {
-        console.log(eventResponse);
+        console.log("Sending event response:", eventResponse);
         fetch("api/game/HandleBoardEventResponse", {
             method: "POST",
             headers: {
@@ -230,18 +261,20 @@ function PlayMonopoly() {
         })
             .then(response => {
                 if (!response.ok) {
-                    throw new Error("Network response was not successful when handling the board event response.");
+                    return response.text().then(text => { throw new Error(text) });
                 }
                 return response.json();
             })
             .then(data => {
+                console.log("Response data:", data);
                 setGameDTO(data);
                 toast.success("Event handled successfully!");
             })
             .catch(error => {
-                toast.error("Unexpected error handling the event: " + error);
+                console.error("Error handling event:", error);
             });
     }
+
 
 
 
@@ -286,22 +319,26 @@ function PlayMonopoly() {
 
 
                 <div className="flex flex-col m-5">
-                    {/* Section 3 */}
+                    {/* Section Top */}
                     <div className="flex flex-row">
-                        {renderBoardSection(boardSections.Section3)}
+                        {renderBoardCorner(boardSections.TopLeftCorner, BoardSquareDirections.TOP_LEFT_CORNER)}
+                        {renderBoardSection(boardSections.TopSegment, BoardSquareDirections.TOP)}
+                        {renderBoardCorner(boardSections.TopRightCorner, BoardSquareDirections.TOP_RIGHT_CORNER)}
                     </div>
-                    {/* Sections  2 and 4 */}
+                    {/* Sections Left and Right*/}
                     <div className="flex flex-row justify-between">
                         <div className="flex flex-col-reverse">
-                            {renderBoardSection(boardSections.Section2)}
+                            {renderBoardSection(boardSections.LeftSegment, BoardSquareDirections.LEFT)}
                         </div>
                         <div className="flex flex-col">
-                            {renderBoardSection(boardSections.Section4)}
+                            {renderBoardSection(boardSections.RightSegment, BoardSquareDirections.RIGHT)}
                         </div>
                     </div>
-                    {/* Sections  1 */}
+                    {/* Sections  Bottom */}
                     <div className="flex flex-row-reverse items-end">
-                        {renderBoardSection(boardSections.Section1)}
+                        {renderBoardCorner(boardSections.BottomRightCorner, BoardSquareDirections.BOTTOM_RIGHT_CORNER)}
+                        {renderBoardSection(boardSections.BottomSegment, BoardSquareDirections.BOTTOM)}
+                        {renderBoardCorner(boardSections.BottomLeftCorner, BoardSquareDirections.BOTTOM_LEFT_CORNER)}
                     </div>
                 </div>
             </div>
