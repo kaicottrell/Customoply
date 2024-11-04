@@ -14,8 +14,8 @@ namespace CustomMonopoly.Server.Models
         public int PlayerId { get; set; }
         [Key, Column(Order = 2)]
         public int PropertySquareId { get; set; }
-        public int? HouseCount { get; set; }
-        public int? HotelCount { get; set; } 
+        public int HouseCount { get; set; } = 0;
+        public int HotelCount { get; set; } = 0;
 
         [ForeignKey("PlayerId")]
         public Player Player { get; set; }

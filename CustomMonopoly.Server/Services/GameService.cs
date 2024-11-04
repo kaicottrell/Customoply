@@ -100,7 +100,7 @@ namespace CustomMonopoly.Server.Services
                         boardEventDTO = new BoardEventDTO
                         {
                             Description = $"Pay {toPlayer.Color} Player ${rent} for {propertySquare.Name}",
-                            EventType = SD.HomeNoActionBoardEvent,
+                            EventType = SD.RentRequiredBoardEvent,
                             RentAmount = rent,
                             Player = player.ToPlayerDTO(),
                             ToPlayer = toPlayer.ToPlayerDTO()
