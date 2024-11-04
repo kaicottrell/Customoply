@@ -13,6 +13,7 @@ import {
 import CustomModal from '../components/CustomModal.jsx';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faRotate } from '@fortawesome/free-solid-svg-icons'
+import React from 'react';
 
 function PlayMonopoly() {
     const [gameDTO, setGameDTO] = useState({});
@@ -154,13 +155,18 @@ function PlayMonopoly() {
         
         return (
             <div key={index ?? undefined} className={`flex ${classBoardSquareSize} ${boardSquareflexAlignment} border-1 border-black text-center text-xs`}>
-                {
-                    boardSquareColorBGClass && (
-                        <div className={`${boardSquareColorBGClass} ${boardColorDimensions}`}></div>
-                    )
+                { boardSquareColorBGClass &&
+                    <div className={`${boardSquareColorBGClass} ${boardColorDimensions} border-1 border-black` }></div>
+                    
                 }
                 <div className={contentRotation ?? '' }>
-                    {boardSquare.name}
+                    {boardSquare.name.split(' ').map((word, index) => (
+                        <React.Fragment key={index}>
+                            {word}
+                            {word.length > 2 && index < boardSquare.name.split(' ').length - 1 && <br />}
+                        </React.Fragment>
+                    ))}
+
                 </div>
                 
                 <div className="flex justify-center items-center flex-wrap mt-1 gap-1">

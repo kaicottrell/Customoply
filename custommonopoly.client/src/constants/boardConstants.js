@@ -63,6 +63,10 @@ export const boardSquareStructure = {
     TOP_LEFT_CORNER: "flex-col justify-center"
 }
 export const boardContentOrientation = {
+    TOP: "rotate-180  ",
+    RIGHT: "rotate-270 ml-12",
+    BOTTOM: "",
+    LEFT: "rotate-90 mr-9",
     BOTTOM_LEFT_CORNER: "rotate-45",
     BOTTOM_RIGHT_CORNER: "rotate-315",
     TOP_RIGHT_CORNER: "rotate-225",
