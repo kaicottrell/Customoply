@@ -68,3 +68,10 @@ export const boardContentOrientation = {
     TOP_RIGHT_CORNER: "rotate-225",
     TOP_LEFT_CORNER: "rotate-135"
 }
+
+export const rotateClasses = [
+    "",
+    "rotate-90",
+    "rotate-180",
+    "rotate-270",
+]

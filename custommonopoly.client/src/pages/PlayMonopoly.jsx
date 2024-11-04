@@ -3,12 +3,22 @@ import SignOutLink from "../auth/SignOutLink.jsx";
 import { useEffect, useState, useMemo } from "react";
 import toast, { Toaster } from 'react-hot-toast';
 import StartGameModal from '../components/StartGameModal.jsx';
-import { playerBGColors, playerBorderColors, boardSquareColors, boardSquareSizes, getPlayerBorderColor, getPlayerHoverBGColor, boardSquareStructure, boardContentOrientation } from '../constants/boardConstants.js';
+import {
+    playerBGColors, playerBorderColors,
+    boardSquareColors, boardSquareSizes,
+    getPlayerBorderColor, getPlayerHoverBGColor, boardSquareStructure, boardContentOrientation,
+    rotateClasses
+} from '../constants/boardConstants.js';
+
 import CustomModal from '../components/CustomModal.jsx';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faRotate } from '@fortawesome/free-solid-svg-icons'
+
 function PlayMonopoly() {
     const [gameDTO, setGameDTO] = useState({});
     const [isStartGameModalOpen, setStartGameModalOpen] = useState(false);
     const [activePlayer, setActivePlayer] = useState({});
+    const [rotateBoardClass, setRotateBoardClass] = useState('');
     //TODO: games should be able to be gathered
 
     const BoardSquareDirections = {
@@ -21,6 +31,15 @@ function PlayMonopoly() {
         TOP_RIGHT_CORNER: "TOP_RIGHT_CORNER",
         TOP_LEFT_CORNER: "TOP_LEFT_CORNER"
     };
+    function rotateBoard() {
+        const indexOfCurrentRotation = rotateClasses.indexOf(rotateBoardClass);
+        console.log("Current rotation index:", indexOfCurrentRotation);
+
+        const newClass = rotateClasses[(indexOfCurrentRotation + 1) % rotateClasses.length];
+        console.log("New rotation class:", newClass);
+
+        setRotateBoardClass(newClass);
+    }
 
     async function startGame() {
         try {
@@ -316,9 +335,12 @@ function PlayMonopoly() {
                         </button>
                     )
                 }
+                <button className="bg-white border-2 border-black p-3 mt-4" type="button" onClick={() => rotateBoard()}>
+                    <FontAwesomeIcon icon={faRotate } />
+                </button>
 
 
-                <div className="flex flex-col m-5">
+                <div className={`flex flex-col m-5 bg-green-200 ${rotateBoardClass}`}>
                     {/* Section Top */}
                     <div className="flex flex-row">
                         {renderBoardCorner(boardSections.TopLeftCorner, BoardSquareDirections.TOP_LEFT_CORNER)}
@@ -329,6 +351,15 @@ function PlayMonopoly() {
                     <div className="flex flex-row justify-between">
                         <div className="flex flex-col-reverse">
                             {renderBoardSection(boardSections.LeftSegment, BoardSquareDirections.LEFT)}
+                        </div>
+                        <div className="flex flex-col justify-between items-center rotate-45 ">
+                            <div className="outline-5 outline-dashed w-60 h-40 flex justify-center items-center">
+                                <p>Community Chest Cards </p> 
+                            </div>
+                            <h1 className="text-9xl text-white border-2 border-black p-5 bg-red-600 shadow-xl stroke-black"> Monopoly</h1>
+                            <div className="outline-5 outline-dashed w-60 h-40 flex justify-center items-center">
+                                <p>Chance Cards </p> 
+                            </div>
                         </div>
                         <div className="flex flex-col">
                             {renderBoardSection(boardSections.RightSegment, BoardSquareDirections.RIGHT)}
