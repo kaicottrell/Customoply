@@ -4,16 +4,16 @@ namespace CustomMonopoly.Server.ViewModels.DTOs
 {
     public class BoardSquareDTO
     {
-        public string? Color { get; set; }
         public string Name { get; set; }
         public int OrderNumber { get; set; }
         public string Type { get; set; }
-        public int? HouseCount { get; set; }
-        public bool? HasHotel { get; set; }
+        public PropertyDetailsDTO Details { get; set; } = new PropertyDetailsDTO();
+        
+
         public BoardSquareDTO(BoardSquare boardSquare, int order)
         {
             OrderNumber = order;
-            Color = boardSquare is PropertySquare ps ? ps.Color : null;
+            Details.Color = boardSquare is PropertySquare ps ? ps.Color : null;
             Name = boardSquare switch
             {
                 PropertySquare prosq => prosq.Name,

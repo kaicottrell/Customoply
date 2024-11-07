@@ -15,7 +15,7 @@ namespace CustomMonopoly.Server.Services
         }
         public void HandleAvailableForPurchaseEvent(BoardEventDTO e, string? option)
         {
-            if (e.PropertyDTO == null || e.Player == null)
+            if (e.PropertyDetailsDTO == null || e.Player == null)
             {
                 throw new Exception("Expected PropertySqaure and Player to be non null, but found at least one null.");
             }
@@ -25,12 +25,12 @@ namespace CustomMonopoly.Server.Services
             }
 
             //Verify that the property is not already bought
-            bool canBuy = _db.PlayerProperties.Any(p => p.PropertySquareId == e.PropertyDTO.PropertyId && p.Player.GameId == e.Player.GameId) == false;
+            bool canBuy = _db.PlayerProperties.Any(p => p.PropertySquareId == e.PropertyDetailsDTO.PropertyId && p.Player.GameId == e.Player.GameId) == false;
             if (canBuy == false)
             {
                 throw new Exception("Player Attempted to buy property that is already owned");
             }
-            if (e.PropertyOptions == null || e.PropertyOptions.Contains(option) == false )
+            if (e.PropertyDetailsDTO.PropertyOptions == null || e.PropertyDetailsDTO.PropertyOptions.Contains(option) == false )
             {
                 throw new Exception("Option in response does not match the options available in the event");
             }
@@ -42,13 +42,13 @@ namespace CustomMonopoly.Server.Services
                 //    break;
                 case SD.Purchase:
                     var player = _db.Players.Where(p => p.Id == e.Player.Id).First();
-                    player.Balance -= e.PropertyDTO.Price;
+                    player.Balance -= e.PropertyDetailsDTO.PurchasePrice;
                     _db.Update(player);
                     //Assign the property to the player
                     PlayerProperty acquiredProperty = new PlayerProperty
                     {
                         PlayerId = e.Player.Id,
-                        PropertySquareId = e.PropertyDTO.PropertyId
+                        PropertySquareId = e.PropertyDetailsDTO.PropertyId
                     };
                     _db.Add(acquiredProperty);
                     _db.SaveChanges();
@@ -59,20 +59,20 @@ namespace CustomMonopoly.Server.Services
         }
         public void HandleRentRequiredEvent(BoardEventDTO e)
         {
-            if (e.RentAmount == null)
+            if (e.RentDetailsDTO == null)
             {
                 throw new Exception("Expected Rent Amount in the board event, but none listed.");
             }
-            if (e.Player == null || e.ToPlayer == null)
+            if (e.Player == null || e.RentDetailsDTO.ToPlayer == null)
             {
                 throw new Exception("Expected Players to be non null, but found null");
             }
             //Take rent from player
             var fromPlayer = _db.Players.Where(p => p.Id == e.Player.Id).First();
-            fromPlayer.Balance -= e.RentAmount.Value;
+            fromPlayer.Balance -= e.RentDetailsDTO.RentAmount;
             //Give balance to the TOPlayer
-            var toPlayer = _db.Players.Where(p => p.Id == e.ToPlayer.Id).First();
-            toPlayer.Balance += e.RentAmount.Value;
+            var toPlayer = _db.Players.Where(p => p.Id == e.RentDetailsDTO.ToPlayer.Id).First();
+            toPlayer.Balance += e.RentDetailsDTO.RentAmount;
 
             _db.Update(fromPlayer);
             _db.Update(toPlayer);

@@ -5,9 +5,9 @@ namespace CustomMonopoly.Server.Extensions
 {
     public static class PropertyExtensions
     {
-        public static PropertyDTO ToPropertyDTO(this PropertySquare propertySquare)
+        public static PropertyDetailsDTO ToPropertyDTO(this PropertySquare propertySquare)
         {
-            var newPropertyDTO = new PropertyDTO
+            var newPropertyDTO = new PropertyDetailsDTO
             {   
                 PropertyId = propertySquare.Id,
                 Name = propertySquare.Name,

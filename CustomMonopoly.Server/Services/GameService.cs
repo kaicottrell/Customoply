@@ -74,14 +74,7 @@ namespace CustomMonopoly.Server.Services
                             propertyOptions.Add(SD.Purchase);
                         }
                         // return the available for purchase event
-                        boardEventDTO = new BoardEventDTO { 
-                            PurchasePrice = propertySquare.Price,
-                            PropertyOptions = propertyOptions,
-                            Description = "Buy or Purchase",
-                            EventType = SD.PurchaseOrAuctionPropertyBoardEvent,
-                            PropertyDTO = propertySquare.ToPropertyDTO(),
-                            Player = player.ToPlayerDTO(),
-                        };
+                        boardEventDTO = new BoardEventDTO(propertySquare, propertyOptions, player);
                     }
                     // Owned by the player who landed on the property square
                     else if (playerProperty.PlayerId == player.Id)
@@ -97,15 +90,7 @@ namespace CustomMonopoly.Server.Services
                     {
                         int rent = DetermineRent(playerProperty, propertySquare, diceRoll);
                         var toPlayer = playerProperty.Player;
-                        boardEventDTO = new BoardEventDTO
-                        {
-                            Description = $"Pay {toPlayer.Color} Player ${rent} for {propertySquare.Name}",
-                            EventType = SD.RentRequiredBoardEvent,
-                            RentAmount = rent,
-                            Player = player.ToPlayerDTO(),
-                            ToPlayer = toPlayer.ToPlayerDTO()
-
-                        };
+                        boardEventDTO = new BoardEventDTO(propertySquare, player, toPlayer, rent);
                     }
                     break;
                 //TODO: Implement the Card Service to handle drawing a random chance or community card 
