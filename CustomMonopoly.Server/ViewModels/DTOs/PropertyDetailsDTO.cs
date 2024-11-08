@@ -8,6 +8,8 @@ namespace CustomMonopoly.Server.ViewModels.DTOs
         public string Name { get; set; }
         public int PurchasePrice { get; set; }
         public int MorgageValue { get; set; }
+        public string PropertyType { get; set; } 
+        public string Color { get; set; }
         public int? HouseHotelCost { get; set; }
         public int? RentNoHouse { get; set; }
         public int? RentOneHouse { get; set; }
@@ -16,6 +18,7 @@ namespace CustomMonopoly.Server.ViewModels.DTOs
         public int? RentFourHouse { get; set; }
         public int? RentHotel { get; set; }
         public List<string>? PropertyOptions { get; set; }
+        
 
         public PropertyDetailsDTO()
         {
@@ -28,6 +31,7 @@ namespace CustomMonopoly.Server.ViewModels.DTOs
             Name = property.Name;
             PurchasePrice = property.Price;
             MorgageValue = property.MorgageValue;
+            Color = property.Color;
             if (property is BuildablePropertySquare bps)
             {
                 HouseHotelCost = bps.HouseHotelCost;
@@ -39,6 +43,13 @@ namespace CustomMonopoly.Server.ViewModels.DTOs
                 RentHotel = bps.RentHotel;  
             }
 
+            PropertyType = property switch
+            {
+                BuildablePropertySquare => "Buildable",
+                UtilitySquare => "Utility",
+                RailRoadSquare => "RailRoad",
+                _ => throw new Exception("Unexpected time of property square when converting to DTO")
+            };
         }
     }
 }

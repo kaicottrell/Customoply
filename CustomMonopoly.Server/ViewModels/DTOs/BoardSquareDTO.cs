@@ -8,12 +8,12 @@ namespace CustomMonopoly.Server.ViewModels.DTOs
         public int OrderNumber { get; set; }
         public string Type { get; set; }
         public PropertyDetailsDTO Details { get; set; } = new PropertyDetailsDTO();
-        
+        public string Color { get; set; }
 
         public BoardSquareDTO(BoardSquare boardSquare, int order)
         {
             OrderNumber = order;
-            Details.Color = boardSquare is PropertySquare ps ? ps.Color : null;
+            Color = boardSquare is PropertySquare ps ? ps.Color : null;
             Name = boardSquare switch
             {
                 PropertySquare prosq => prosq.Name,

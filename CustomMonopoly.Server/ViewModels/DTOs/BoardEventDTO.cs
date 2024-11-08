@@ -19,7 +19,7 @@ namespace CustomMonopoly.Server.ViewModels.DTOs
         public bool PlayerPassedGo { get; set; } = false;
 
         // Common properties for all property events can be added here
-        public PropertyDetailsDTO? PropertyDetailsDTO { get;  set; }
+        public PropertyDetailsDTO? AvailablePropertyDetailsDTO { get;  set; }
         /// <summary>s
         /// Holds the player associated with the event type
         /// </summary>
@@ -37,7 +37,7 @@ namespace CustomMonopoly.Server.ViewModels.DTOs
         {
             Description = "Buy or Purchase";
             EventType = SD.PurchaseOrAuctionPropertyBoardEvent;
-            PropertyDetailsDTO = new PropertyDetailsDTO(propertySquare, propertyOptions);
+            AvailablePropertyDetailsDTO = new PropertyDetailsDTO(propertySquare, propertyOptions);
             Player = player.ToPlayerDTO();
         }
         /// <summary>

@@ -14,7 +14,7 @@ import CustomModal from '../components/CustomModal.jsx';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faRotate } from '@fortawesome/free-solid-svg-icons'
 import React from 'react';
-
+import PropertyCardWrapper from '../components/PropertyCardWrapper.jsx'
 function PlayMonopoly() {
     const [gameDTO, setGameDTO] = useState({});
     const [isStartGameModalOpen, setStartGameModalOpen] = useState(false);
@@ -34,10 +34,8 @@ function PlayMonopoly() {
     };
     function rotateBoard() {
         const indexOfCurrentRotation = rotateClasses.indexOf(rotateBoardClass);
-        console.log("Current rotation index:", indexOfCurrentRotation);
 
         const newClass = rotateClasses[(indexOfCurrentRotation + 1) % rotateClasses.length];
-        console.log("New rotation class:", newClass);
 
         setRotateBoardClass(newClass);
     }
@@ -127,7 +125,6 @@ function PlayMonopoly() {
             RightSegment: gameDTO.boardSquares.slice((squaresPerSide * 3) + 1, squaresPerSide * 4)
         };
 
-        console.log("boardSections:", sections);
         return sections;
     }, [gameDTO]);
 
@@ -141,10 +138,8 @@ function PlayMonopoly() {
             "Big": "size-56"
         }[boardSquareSize] || (() => { throw new Error("Size not implemented"); })();
 
-        
+
         const boardSquareflexAlignment = boardSquareStructure[boardSquareOrientation];
-        console.log("orientation " + boardSquareOrientation);
-        console.log("boardSquareflexAlignment " + boardSquareflexAlignment);
 
         const boardColorDimensions = boardSquareOrientation == BoardSquareDirections.RIGHT || boardSquareOrientation == BoardSquareDirections.LEFT ?
             "w-5 h-28" : "h-5 w-28";
@@ -152,14 +147,14 @@ function PlayMonopoly() {
         const boardSquareColorBGClass = boardSquare.color ? boardSquareColors[boardSquare.color] : "";
         const boardSquareOrder = boardSquare.orderNumber;
         const playersOnSquare = gameDTO.playerList.filter((player) => player.currentPosition === boardSquareOrder);
-        
+
         return (
             <div key={index ?? undefined} className={`flex ${classBoardSquareSize} ${boardSquareflexAlignment} border-1 border-black text-center text-xs`}>
-                { boardSquareColorBGClass &&
-                    <div className={`${boardSquareColorBGClass} ${boardColorDimensions} border-1 border-black` }></div>
-                    
+                {boardSquareColorBGClass &&
+                    <div className={`${boardSquareColorBGClass} ${boardColorDimensions} border-1 border-black`}></div>
+
                 }
-                <div className={contentRotation ?? '' }>
+                <div className={contentRotation ?? ''}>
                     {boardSquare.name.split(' ').map((word, index) => (
                         <React.Fragment key={index}>
                             {word}
@@ -168,7 +163,7 @@ function PlayMonopoly() {
                     ))}
 
                 </div>
-                
+
                 <div className="flex justify-center items-center flex-wrap mt-1 gap-1">
                     {
                         // Player(s) on square
@@ -222,15 +217,34 @@ function PlayMonopoly() {
             return;
         }
 
-        const propertyEventChoices = gameDTO.currentBoardEvent.propertyOptions;
+        const propertyEventChoices = gameDTO.currentBoardEvent?.availablePropertyDetailsDTO?.propertyOptions ?? null;
+        const isAvailableForPurchase = propertyEventChoices ? propertyEventChoices.includes("Purchase") : false;
+        const playerPassedGo = gameDTO.currentBoardEvent.playerPassedGo;
+
+        console.log("PropertyDetails: " + gameDTO.currentBoardEvent.availablePropertyDetailsDTO);
+        console.log(isAvailableForPurchase);
 
         return (
             <div>
-                <h3>{event.description}</h3>
+                {playerPassedGo && (
+                    <div className="flex justify-center">
+                        <div className="text-center  bg-green-200 border-2 border-green-700 rounded-xl w-50 p-2 my-2">
+                            Player Passed Go! +$200
+                        </div>
+                    </div>
+
+                )}
+
+                <h3 className="text-center bg-gray-300 border-1 border-black p-2">{event.description}</h3>
+
+                {(isAvailableForPurchase && gameDTO.currentBoardEvent.availablePropertyDetailsDTO.propertyType) && (
+                    //TODO : switch the type of card to display based on the propertytype
+                    <PropertyCardWrapper propertyDetails={gameDTO.currentBoardEvent.availablePropertyDetailsDTO }/>
+                )}
+
                 {
                     propertyEventChoices ? (
                         <>
-                            <div> Price: {event.purchasePrice} </div>
                             <div className="flex justify-center gap-3 ">
                                 {propertyEventChoices.map((option) => (
                                     <div key={`choice-${option}`}>
@@ -242,9 +256,13 @@ function PlayMonopoly() {
                             </div>
                         </>
                     ) : (
-                        <button type="button" onClick={() => handleEventResponse()} className="p-3 border-2 border-indigo-500 hover:border-2 hover:border-green-700 hover:bg-green-200">
-                            OK
-                        </button>
+                        // Acknowledge event
+                        <div className="flex justify-center">
+                            <button type="button" onClick={() => handleEventResponse()} className="p-3 border-2 border-indigo-500 hover:border-2 hover:border-green-700 hover:bg-green-200">
+                                OK
+                            </button>
+                        </div>
+
                     )
                 }
             </div>
@@ -252,7 +270,6 @@ function PlayMonopoly() {
     }
 
     function handleEventResponse(option) {
-        console.log("Option: " + option);
 
         const currentBoardEvent = gameDTO.currentBoardEvent;
 
@@ -262,21 +279,18 @@ function PlayMonopoly() {
                 BoardEvent: currentBoardEvent,
                 SelectedPropertyOption: option,
             };
-            console.log("available for purchase" + availableForPurchaseEventResponse);
             sendEventResponse(availableForPurchaseEventResponse);
         } else {
             const acknowledgementResponse = {
                 GameId: gameDTO.id,
                 BoardEvent: currentBoardEvent
             };
-            console.log("acknowledge" + acknowledgementResponse);
             sendEventResponse(acknowledgementResponse);
         }
     }
 
 
     function sendEventResponse(eventResponse) {
-        console.log("Sending event response:", eventResponse);
         fetch("api/game/HandleBoardEventResponse", {
             method: "POST",
             headers: {
@@ -291,7 +305,6 @@ function PlayMonopoly() {
                 return response.json();
             })
             .then(data => {
-                console.log("Response data:", data);
                 setGameDTO(data);
                 toast.success("Event handled successfully!");
             })
@@ -315,6 +328,7 @@ function PlayMonopoly() {
                 <h1 className="mt-3 border-2 rounded-xl p-4 shadow-xl xl:w-1/3 sm:w-3/4 w-full text-center">
                     Welcome to Monopoly
                 </h1>
+
                 <div className="flex gap-2">
                     {gameDTO.playerList && gameDTO.playerList.map((player, index) => {
                         const playerColorClass = playerBorderColors[player.color] ?? "border-gray-200";
@@ -342,7 +356,7 @@ function PlayMonopoly() {
                     )
                 }
                 <button className="bg-white border-2 border-black p-3 mt-4" type="button" onClick={() => rotateBoard()}>
-                    <FontAwesomeIcon icon={faRotate } />
+                    <FontAwesomeIcon icon={faRotate} />
                 </button>
 
 
@@ -360,11 +374,11 @@ function PlayMonopoly() {
                         </div>
                         <div className="flex flex-col justify-between items-center rotate-45 ">
                             <div className="outline-5 outline-dashed w-60 h-40 flex justify-center items-center">
-                                <p>Community Chest Cards </p> 
+                                <p>Community Chest Cards </p>
                             </div>
                             <h1 className="text-9xl text-white border-2 border-black p-5 bg-red-600 shadow-xl stroke-black"> Monopoly</h1>
                             <div className="outline-5 outline-dashed w-60 h-40 flex justify-center items-center">
-                                <p>Chance Cards </p> 
+                                <p>Chance Cards </p>
                             </div>
                         </div>
                         <div className="flex flex-col">

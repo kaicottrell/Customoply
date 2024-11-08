@@ -40,6 +40,12 @@
         public BuildablePropertySquare(string name, string color, int morgageValue, int price, int rentNoHouse, int rentOneHouse, int rentTwoHouse, int rentThreeHouse, int rentFourHouse, int rentHotel, int houseHotelCost)
             : base(name, color, morgageValue, price)
         {
+            RentNoHouse = rentNoHouse;
+            RentOneHouse = rentOneHouse;
+            RentTwoHouse = rentTwoHouse;
+            RentThreeHouse = rentThreeHouse;
+            RentFourHouse = rentFourHouse;
+            RentHotel = rentHotel;
             HouseHotelCost = houseHotelCost;
         }
     }

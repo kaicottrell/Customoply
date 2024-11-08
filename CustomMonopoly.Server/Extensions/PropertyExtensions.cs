@@ -11,7 +11,7 @@ namespace CustomMonopoly.Server.Extensions
             {   
                 PropertyId = propertySquare.Id,
                 Name = propertySquare.Name,
-                Price = propertySquare.Price,
+                PurchasePrice = propertySquare.Price,
                 MorgageValue = propertySquare.MorgageValue
             };
 

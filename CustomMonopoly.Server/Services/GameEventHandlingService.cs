@@ -15,7 +15,7 @@ namespace CustomMonopoly.Server.Services
         }
         public void HandleAvailableForPurchaseEvent(BoardEventDTO e, string? option)
         {
-            if (e.PropertyDetailsDTO == null || e.Player == null)
+            if (e.AvailablePropertyDetailsDTO == null || e.Player == null)
             {
                 throw new Exception("Expected PropertySqaure and Player to be non null, but found at least one null.");
             }
@@ -25,12 +25,12 @@ namespace CustomMonopoly.Server.Services
             }
 
             //Verify that the property is not already bought
-            bool canBuy = _db.PlayerProperties.Any(p => p.PropertySquareId == e.PropertyDetailsDTO.PropertyId && p.Player.GameId == e.Player.GameId) == false;
+            bool canBuy = _db.PlayerProperties.Any(p => p.PropertySquareId == e.AvailablePropertyDetailsDTO.PropertyId && p.Player.GameId == e.Player.GameId) == false;
             if (canBuy == false)
             {
                 throw new Exception("Player Attempted to buy property that is already owned");
             }
-            if (e.PropertyDetailsDTO.PropertyOptions == null || e.PropertyDetailsDTO.PropertyOptions.Contains(option) == false )
+            if (e.AvailablePropertyDetailsDTO.PropertyOptions == null || e.AvailablePropertyDetailsDTO.PropertyOptions.Contains(option) == false )
             {
                 throw new Exception("Option in response does not match the options available in the event");
             }
@@ -42,13 +42,13 @@ namespace CustomMonopoly.Server.Services
                 //    break;
                 case SD.Purchase:
                     var player = _db.Players.Where(p => p.Id == e.Player.Id).First();
-                    player.Balance -= e.PropertyDetailsDTO.PurchasePrice;
+                    player.Balance -= e.AvailablePropertyDetailsDTO.PurchasePrice;
                     _db.Update(player);
                     //Assign the property to the player
                     PlayerProperty acquiredProperty = new PlayerProperty
                     {
                         PlayerId = e.Player.Id,
-                        PropertySquareId = e.PropertyDetailsDTO.PropertyId
+                        PropertySquareId = e.AvailablePropertyDetailsDTO.PropertyId
                     };
                     _db.Add(acquiredProperty);
                     _db.SaveChanges();
