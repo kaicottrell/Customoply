@@ -341,13 +341,10 @@ function PlayMonopoly() {
                     console.log("status " + response.status);
                 }
             }
-
+            setIsPlayerPropertiesBeingViewed(true);
         } catch (e) {
             toast.error("Unexpected error when getting the properties associated with the player");
             console.error(e);
-        } finally {
-            console.log("finally block");
-            setIsPlayerPropertiesBeingViewed(true);
         }
     }
 
