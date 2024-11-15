@@ -35,7 +35,7 @@ namespace CustomMonopoly.Server.ViewModels.DTOs
         /// <param name="player"></param>
         public BoardEventDTO(PropertySquare propertySquare, List<string> propertyOptions, Player player)
         {
-            Description = "Buy or Purchase";
+            Description = "Auction or Purchase";
             EventType = SD.PurchaseOrAuctionPropertyBoardEvent;
             AvailablePropertyDetailsDTO = new PropertyDetailsDTO(propertySquare, propertyOptions);
             Player = player.ToPlayerDTO();

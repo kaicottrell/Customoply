@@ -12,7 +12,8 @@ namespace CustomMonopoly.Server.Extensions
                 PropertyId = propertySquare.Id,
                 Name = propertySquare.Name,
                 PurchasePrice = propertySquare.Price,
-                MorgageValue = propertySquare.MorgageValue
+                MorgageValue = propertySquare.MorgageValue,
+                Color = propertySquare.Color
             };
 
             if (propertySquare is BuildablePropertySquare bps)
@@ -25,6 +26,15 @@ namespace CustomMonopoly.Server.Extensions
                 newPropertyDTO.RentFourHouse = bps.RentFourHouse;
                 newPropertyDTO.RentHotel = bps.RentHotel;
             }
+
+            newPropertyDTO.PropertyType = propertySquare switch
+            {
+                BuildablePropertySquare => "Buildable",
+                UtilitySquare => "Utility",
+                RailRoadSquare => "RailRoad",
+                _ => throw new Exception("Unexpected time of property square when converting to DTO")
+            };
+
 
             return newPropertyDTO;
         }

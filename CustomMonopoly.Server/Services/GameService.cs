@@ -210,6 +210,20 @@ namespace CustomMonopoly.Server.Services
             }
 
         }
+        /// <summary>
+        /// Returns the Property Squares associated with the given player
+        /// </summary>
+        /// <param name="playerId">The identifier for the associated player</param>
+        /// <returns>List of properties owned by the player</returns>
+        public async Task<List<PropertySquare>> GetPlayerPropertySquares(int playerId)
+        {
+            List<PropertySquare> playerProperties = await _db.PlayerProperties.Where(pp => pp.PlayerId == playerId)
+                .Include(pp => pp.PropertySquare)
+                .Select(pp => pp.PropertySquare)
+                .ToListAsync();
+
+            return playerProperties;
+        }
         private int CalculateRailroadRent(PlayerProperty playerProperty)
         {
             // rent is based on the number of railroads as defined by the railroad settings.

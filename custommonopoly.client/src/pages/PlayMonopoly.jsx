@@ -12,7 +12,7 @@ import {
 
 import CustomModal from '../components/CustomModal.jsx';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faRotate } from '@fortawesome/free-solid-svg-icons'
+import { faRotate, faX } from '@fortawesome/free-solid-svg-icons'
 import React from 'react';
 import PropertyCardWrapper from '../components/PropertyCardWrapper.jsx'
 function PlayMonopoly() {
@@ -20,6 +20,9 @@ function PlayMonopoly() {
     const [isStartGameModalOpen, setStartGameModalOpen] = useState(false);
     const [activePlayer, setActivePlayer] = useState({});
     const [rotateBoardClass, setRotateBoardClass] = useState('');
+    const [playerPropertiesBeingViewedId, setPlayerPropertiesBeingViewedId] = useState(null);
+    const [isPlayerPropertiesBeingViewed, setIsPlayerPropertiesBeingViewed] = useState(false);
+    const [playerOwnedProperties, setPlayerOwnedProperties] = useState([]);
     //TODO: games should be able to be gathered
 
     const BoardSquareDirections = {
@@ -126,7 +129,7 @@ function PlayMonopoly() {
         };
 
         return sections;
-    }, [gameDTO]);
+    }, [gameDTO.boardSquares]);
 
 
     const getGameBoardSquareView = (boardSquare, index = null, boardSquareOrientation) => {
@@ -238,10 +241,13 @@ function PlayMonopoly() {
                 <h3 className="text-center bg-gray-300 border-1 border-black p-2">{event.description}</h3>
 
                 {(isAvailableForPurchase && gameDTO.currentBoardEvent.availablePropertyDetailsDTO.propertyType) && (
-                    //TODO : switch the type of card to display based on the propertytype
-                    <PropertyCardWrapper propertyDetails={gameDTO.currentBoardEvent.availablePropertyDetailsDTO }/>
+                    <PropertyCardWrapper propertyDetails={gameDTO.currentBoardEvent.availablePropertyDetailsDTO} />
                 )}
-
+                <div className="flex justify-center">
+                    <div className="border-1 border-black py-2 px-3 bg-gray-200 mb-3">
+                        Current Cash: ${activePlayer.balance}
+                    </div>
+                </div>
                 {
                     propertyEventChoices ? (
                         <>
@@ -257,8 +263,8 @@ function PlayMonopoly() {
                         </>
                     ) : (
                         // Acknowledge event
-                        <div className="flex justify-center">
-                            <button type="button" onClick={() => handleEventResponse()} className="p-3 border-2 border-indigo-500 hover:border-2 hover:border-green-700 hover:bg-green-200">
+                        <div className="flex justify-center mt-3">
+                            <button type="button" onClick={() => handleEventResponse()} className="p-3 mt-3 border-2 border-indigo-500 hover:border-2 hover:border-green-700 hover:bg-green-200">
                                 OK
                             </button>
                         </div>
@@ -313,6 +319,40 @@ function PlayMonopoly() {
             });
     }
 
+    const fetchPlayerProperties = async (oldPlayerId, newPlayerId) => {
+        if (newPlayerId == null) return;
+
+        try {
+            // if oldPlayerId is null or if oldPlayerId does not match the new playerId we fetch different property cards
+            if (!oldPlayerId || oldPlayerId != newPlayerId) {
+                const response = await fetch("/api/game/GetPropertiesAssociatedWithPlayer?playerId=" + newPlayerId, {
+                    method: "GET",
+                    headers: {
+                        "content-type": "application/json"
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    setPlayerOwnedProperties(data);
+                    console.log("Player properties: "+ data);
+                } else {
+                    toast.error("Unexpected error when getting the properties associated with the player");
+                    console.log("status " + response.status);
+                }
+            }
+
+        } catch (e) {
+            toast.error("Unexpected error when getting the properties associated with the player");
+            console.error(e);
+        } finally {
+            console.log("finally block");
+            setIsPlayerPropertiesBeingViewed(true);
+        }
+    }
+
+
+
 
 
 
@@ -336,14 +376,24 @@ function PlayMonopoly() {
                         const playerNum = index + 1;
                         const playerCash = player.balance;
                         return (
-                            <div key={player.Id} className={`border-2 ${playerColorClass} ${activePlayerAnimationClass} text-black p-3 shadow-xl rounded-xl text-center font-bold mt-5`}>
+                            <button key={player.id}
+                                type="button"
+                                onClick={() => {
+                                    const oldPlayerId = playerPropertiesBeingViewedId;
+                                    setPlayerPropertiesBeingViewedId(player.id);
+                                    fetchPlayerProperties(oldPlayerId, player.id);
+                                }
+                                }
+                                className={`border-2 ${playerColorClass} ${activePlayerAnimationClass}
+                                    text-black p-3 shadow-xl rounded-xl text-center font-bold mt-5`}
+                            >
                                 <div className="text-md">
                                     Player: {playerNum}
                                 </div>
                                 <div className="text-sm">
                                     ${playerCash}
                                 </div>
-                            </div>
+                            </button>
                         );
                     })}
                 </div>
@@ -406,6 +456,25 @@ function PlayMonopoly() {
                     </CustomModal>
                 )
             }
+
+            {isPlayerPropertiesBeingViewed && (
+                <CustomModal>
+                    <div className="flex justify-end w-100">
+                        <button className="p-3 mr-3 bg-gray-200 border-2 border-black rounded-full" onClick={() => setIsPlayerPropertiesBeingViewed(false)}>
+                            <FontAwesomeIcon icon={faX} />
+                        </button>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 h-[80vh] gap-3 mt-2 overflow-y-auto overflow-x-clip px-3 ">
+                        {playerOwnedProperties.map((propertyDetailsItem, index) => (
+                            <div key={index}>
+                                <PropertyCardWrapper propertyDetails={propertyDetailsItem} />
+                            </div>
+                        ))}
+
+                    </div>
+                </CustomModal>
+
+            )}
         </AuthorizationView>
     );
 }

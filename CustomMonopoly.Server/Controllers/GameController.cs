@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using CustomMonopoly.Server.Extensions;
 using CustomMonopoly.Server.Config;
 using CustomMonopoly.Server.ViewModels.DTOs.Responses;
+using CustomMonopoly.Server.ViewModels.DTOs;
 
 namespace CustomMonopoly.Server.Controllers
 {
@@ -102,7 +103,31 @@ namespace CustomMonopoly.Server.Controllers
                 return BadRequest(ex.Message);
             }
         }
+        [HttpGet("GetPropertiesAssociatedWithPlayer")]
+        public async Task<IActionResult> GetPropertiesAssociatedWithPlayerAsync([FromQuery] int playerId)
+        {
+            try
+            {
+                List<PropertyDetailsDTO> propertyDetailsDTOs = new List<PropertyDetailsDTO>();
+                var propertySquares = await _gameService.GetPlayerPropertySquares(playerId);
 
+                foreach (var property in propertySquares)
+                {
+                    propertyDetailsDTOs.Add(property.ToPropertyDTO());
+                }
+
+                propertyDetailsDTOs
+                    .OrderBy(pd => pd.Color)
+                    .ToList();
+
+                return Ok(propertyDetailsDTOs);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest("An unexpected error occured while gathering the player's properties from the database.");
+            }
+       
+        }
         //[HttpGet("GetGameBoard")]
         //public IActionResult GetGameBoard()
         //{
